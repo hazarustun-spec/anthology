@@ -95,3 +95,26 @@ struct ToolsTests {
         #expect(MarginTools.serverInstructions.localizedCaseInsensitiveContains("consent"))
     }
 }
+
+struct DefaultProjectTests {
+    @Test func usesServerWorkingDirectoryWhenClaudeOmitsProjectPath() throws {
+        let store = try makeStore()
+        let tools = MarginTools(store: store, source: .claudeCode, defaultProjectPath: "/Users/x/Kariyer")
+        let r = tools.call("save_note", ["content": .string("- SQL"), "summary": .string("s"), "note_title": .string("Skills")])
+        #expect(r.text.contains("Kariyer › Skills"))
+        #expect(try store.listTopics()[0].sources == ["/Users/x/Kariyer"])
+    }
+
+    @Test func explicitTopicStillRecordsFolder() throws {
+        let store = try makeStore()
+        let tools = MarginTools(store: store, source: .claudeCode, defaultProjectPath: "/Users/x/site")
+        _ = tools.call("save_note", ["content": .string("x"), "summary": .string("s"), "topic": .string("Web sitesi")])
+        #expect(try store.listTopics()[0].sources == ["/Users/x/site"])
+    }
+
+    @Test func ignoresUselessWorkingDirectories() {
+        #expect(MarginTools.usableProjectPath("/") == nil)
+        #expect(MarginTools.usableProjectPath(NSHomeDirectory()) == nil)
+        #expect(MarginTools.usableProjectPath("/Users/x/Kariyer") == "/Users/x/Kariyer")
+    }
+}

@@ -27,10 +27,20 @@ public struct ToolSpec: Sendable {
 public struct MarginTools: Sendable {
     let store: MarginStore
     let source: ChangeSource
+    /// Used when Claude omits `project_path`. Claude Code starts MCP servers in the project folder.
+    let defaultProjectPath: String?
 
-    public init(store: MarginStore, source: ChangeSource) {
+    public init(store: MarginStore, source: ChangeSource, defaultProjectPath: String? = nil) {
         self.store = store
         self.source = source
+        self.defaultProjectPath = defaultProjectPath.flatMap(Self.usableProjectPath)
+    }
+
+    /// A working directory only identifies a project if it is not `/` or the home folder.
+    public static func usableProjectPath(_ path: String) -> String? {
+        let p = MarginStore.normalize(path) ?? ""
+        let home = MarginStore.normalize(NSHomeDirectory()) ?? ""
+        return (p.isEmpty || p == "/" || p == home) ? nil : p
     }
 
     public static let toolSpecs: [ToolSpec] = [
@@ -155,8 +165,15 @@ public struct MarginTools: Sendable {
     private func saveNote(_ args: [String: ToolArg]) throws -> String {
         let content = try str(args, "content")
         let summary = try str(args, "summary")
-        let project = optStr(args, "project_path")
-        let topic = try store.resolveTopic(projectPath: project, explicitTitle: optStr(args, "topic"))
+        let project = optStr(args, "project_path") ?? defaultProjectPath
+        let explicitTopic = optStr(args, "topic")
+        var topic = try store.resolveTopic(projectPath: project, explicitTitle: explicitTopic)
+        // A topic named explicitly gets its first folder, unless that folder already routes elsewhere.
+        if explicitTopic != nil, let project, topic.sources.isEmpty,
+           try !store.listTopics().contains(where: { $0.sources.contains(project) }) {
+            try store.addSource(topicID: topic.id, source: project)
+            topic = try store.topic(id: topic.id)
+        }
         let title = optStr(args, "note_title") ?? Self.title(from: content)
         let ref: NoteRef
         if let (existing, _) = try store.findNote(topicID: topic.id, title: title) {

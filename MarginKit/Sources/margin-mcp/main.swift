@@ -25,7 +25,10 @@ while let arg = argv.next() {
 let root = MarginPaths.defaultRoot(env: env)
 let tools: MarginTools
 do {
-    tools = MarginTools(store: try MarginStore(root: root), source: source)
+    tools = MarginTools(
+        store: try MarginStore(root: root), source: source,
+        defaultProjectPath: FileManager.default.currentDirectoryPath
+    )
 } catch {
     log("cannot open notes folder \(root.path): \(error)")
     exit(1)
