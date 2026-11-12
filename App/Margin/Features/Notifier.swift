@@ -39,16 +39,3 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     }
 }
 
-extension ChangeSource {
-    var displayName: String {
-        switch self {
-        case .claudeCode: "Claude Code"
-        case .cowork: "Cowork"
-        case .app: String(localized: "You")
-        case .gemini: "Gemini CLI"
-        case .cursor: "Cursor"
-        case .vscode: "VS Code"
-        case .codex: "Codex"
-        }
-    }
-}

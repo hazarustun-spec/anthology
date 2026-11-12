@@ -1,2 +1,3 @@
-// Copy to Local.xcconfig and put your Apple Developer team id here (needed for iCloud).
+// Copy to Local.xcconfig. Your Apple Developer team id and a bundle id you own (needed for iCloud).
 DEVELOPMENT_TEAM = ABCDE12345
+MARGIN_BUNDLE_ID = com.example.margin

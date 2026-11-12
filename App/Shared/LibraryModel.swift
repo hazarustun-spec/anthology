@@ -1,6 +1,10 @@
-import AppKit
 import Foundation
 import MarginCore
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 import Observation
 
 /// Everything the UI shows, loaded off the main thread in one pass.
@@ -33,7 +37,19 @@ final class LibraryModel {
     /// Revisions written by this app, so our own saves are not flagged as "fresh".
     private var ownRevisions: [String: Int] = [:]
 
-    init(root: URL = MarginPaths.defaultRoot()) {
+    private(set) var location: RootResolver.Location = .local
+
+    convenience init() {
+        let (root, location) = RootResolver.resolve()
+        self.init(root: root)
+        self.location = location
+        if location == .iCloud {
+            ICloudDownloader.shared.onChange = { [weak self] in self?.refreshIfChanged() }
+            ICloudDownloader.shared.start()
+        }
+    }
+
+    init(root: URL) {
         do {
             store = try MarginStore(root: root)
         } catch {
@@ -201,7 +217,7 @@ final class LibraryModel {
 
     func moveNote(_ id: String, to topicID: String) {
         guard let store, (try? store.moveNote(id: id, toTopicID: topicID)) != nil else { return }
-        NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+        Haptics.success()
         refresh(markChanges: false, sync: true)
     }
 
@@ -223,7 +239,7 @@ final class LibraryModel {
 
     // MARK: Loading
 
-    private func refreshIfChanged() {
+    func refreshIfChanged() {
         guard let root = store?.root, !loading else { return }
         loading = true
         Task.detached(priority: .utility) {
@@ -273,9 +289,11 @@ final class LibraryModel {
                 let before = Set((old.bodies[id] ?? "").split(separator: "\n").map(String.init))
                 let added = Set((new.bodies[id] ?? "").split(separator: "\n").map(String.init)).subtracting(before)
                 freshLines[id] = added.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                #if os(macOS)
                 if let item = new.activity.first(where: { $0.noteID == id }), item.entry.by != .app {
                     Notifier.shared.post(item)
                 }
+                #endif
             }
         }
         snapshot = new

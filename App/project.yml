@@ -3,31 +3,47 @@ options:
   bundleIdPrefix: com.marginnotes
   deploymentTarget:
     macOS: "15.0"
+    iOS: "18.0"
   createIntermediateGroups: true
   developmentLanguage: en
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
 packages:
   MarginKit:
     path: ../MarginKit
+settings:
+  base:
+    MARKETING_VERSION: "0.2.0"
+    CURRENT_PROJECT_VERSION: "2"
+    SWIFT_VERSION: "6.0"
+    CODE_SIGN_STYLE: Automatic
+    PRODUCT_BUNDLE_IDENTIFIER: $(MARGIN_BUNDLE_ID)
+    PRODUCT_NAME: Margin
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_CFBundleDisplayName: Margin
 targets:
   Margin:
     type: application
     platform: macOS
-    sources: [Margin]
+    sources: [Margin, Shared]
     dependencies:
       - package: MarginKit
         product: MarginCore
+    info:
+      path: Margin/Info.plist
+      properties:
+        LSApplicationCategoryType: public.app-category.productivity
+        MarginICloudContainer: iCloud.$(MARGIN_BUNDLE_ID)
+        NSUbiquitousContainers:
+          iCloud.${MARGIN_BUNDLE_ID}:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerName: Margin
+            NSUbiquitousContainerSupportedFolderLevels: Any
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.marginnotes.Margin
-        PRODUCT_NAME: Margin
-        MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "1"
-        SWIFT_VERSION: "6.0"
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Margin
-        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_FILE: Margin/Info.plist
         CODE_SIGN_ENTITLEMENTS: Margin/Margin.entitlements
-        CODE_SIGN_IDENTITY: "-"
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
     postCompileScripts:
@@ -43,3 +59,34 @@ targets:
           mkdir -p "$DEST"
           rm -f "$DEST/margin-mcp"
           cp "$BIN/margin-mcp" "$DEST/margin-mcp"
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$DEST/margin-mcp" || true
+
+  MarginMobile:
+    type: application
+    platform: iOS
+    sources: [MarginMobile, Shared]
+    dependencies:
+      - package: MarginKit
+        product: MarginCore
+    info:
+      path: MarginMobile/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        NSFaceIDUsageDescription: Margin uses Face ID to unlock your notes.
+        ITSAppUsesNonExemptEncryption: false
+        MarginICloudContainer: iCloud.$(MARGIN_BUNDLE_ID)
+        NSUbiquitousContainers:
+          iCloud.${MARGIN_BUNDLE_ID}:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerName: Margin
+            NSUbiquitousContainerSupportedFolderLevels: Any
+    settings:
+      base:
+        INFOPLIST_FILE: MarginMobile/Info.plist
+        CODE_SIGN_ENTITLEMENTS: MarginMobile/MarginMobile.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

@@ -1,5 +1,13 @@
-import AppKit
 import SwiftUI
+#if os(macOS)
+import AppKit
+public typealias PlatformColor = NSColor
+public typealias PlatformFont = NSFont
+#else
+import UIKit
+public typealias PlatformColor = UIColor
+public typealias PlatformFont = UIFont
+#endif
 
 /// "Blocks" palette (spec §7.1). Light = airy sage, dark = deep green-gray. Every color adapts.
 enum Palette {
@@ -21,21 +29,25 @@ enum Palette {
     static let chip = dynamic(dark: 0x2B3A29, light: 0xE8EFE6)
     static let codeBG = dynamic(dark: 0x2A2E29, light: 0xEEF0EB)
 
-    static func dynamic(dark: UInt32, light: UInt32) -> NSColor {
+    static func dynamic(dark: UInt32, light: UInt32) -> PlatformColor {
+        #if os(macOS)
         NSColor(name: nil) { appearance in
             appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(hex: dark) : NSColor(hex: light)
         }
+        #else
+        UIColor { traits in traits.userInterfaceStyle == .dark ? UIColor(hex: dark) : UIColor(hex: light) }
+        #endif
     }
 
-    static func sans(_ size: CGFloat, weight: NSFont.Weight = .regular) -> NSFont {
-        NSFont.systemFont(ofSize: size, weight: weight)
+    static func sans(_ size: CGFloat, weight: PlatformFont.Weight = .regular) -> PlatformFont {
+        PlatformFont.systemFont(ofSize: size, weight: weight)
     }
 }
 
-extension NSColor {
+extension PlatformColor {
     convenience init(hex: UInt32) {
         self.init(
-            srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
+            red: CGFloat((hex >> 16) & 0xFF) / 255,
             green: CGFloat((hex >> 8) & 0xFF) / 255,
             blue: CGFloat(hex & 0xFF) / 255,
             alpha: 1
@@ -44,7 +56,11 @@ extension NSColor {
 }
 
 extension Color {
+    #if os(macOS)
     init(palette: NSColor) { self.init(nsColor: palette) }
+    #else
+    init(palette: UIColor) { self.init(uiColor: palette) }
+    #endif
 }
 
 enum AppearanceChoice: String, CaseIterable, Identifiable {

@@ -71,15 +71,6 @@ struct NoteList: View {
     }
 }
 
-/// Strips Markdown markers for one-line previews.
-enum NoteText {
-    static func plain(_ line: String) -> String {
-        var l = line.trimmingCharacters(in: .whitespaces)
-        for marker in ["- [ ] ", "- [x] ", "- [X] "] where l.hasPrefix(marker) { l.removeFirst(marker.count) }
-        l = l.replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "`", with: "")
-        return l.trimmingCharacters(in: CharacterSet(charactersIn: "#-*+_").union(.whitespaces))
-    }
-}
 
 struct NoteMenu: View {
     @Environment(LibraryModel.self) private var library
@@ -99,8 +90,3 @@ struct NoteMenu: View {
     }
 }
 
-extension ChangeSource {
-    var label: LocalizedStringKey { LocalizedStringKey(displayName) }
-
-    var symbol: String { self == .app ? "person" : "sparkles" }
-}

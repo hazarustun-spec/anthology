@@ -1,4 +1,10 @@
+#if os(macOS)
 import AppKit
+typealias TextStorageEditActions = NSTextStorageEditActions
+#else
+import UIKit
+typealias TextStorageEditActions = NSTextStorage.EditActions
+#endif
 
 /// Live Markdown styling for the note editor. Restyles only the paragraphs that changed.
 @MainActor
@@ -24,7 +30,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
         [.font: bodyFont, .foregroundColor: Palette.body, .paragraphStyle: paragraphStyle]
     }
 
-    nonisolated func textStorage(_ storage: NSTextStorage, didProcessEditing mask: NSTextStorageEditActions, range: NSRange, changeInLength delta: Int) {
+    nonisolated func textStorage(_ storage: NSTextStorage, didProcessEditing mask: TextStorageEditActions, range: NSRange, changeInLength delta: Int) {
         guard mask.contains(.editedCharacters) else { return }
         // Text storage delegate callbacks arrive on the main thread for an NSTextView-owned storage.
         nonisolated(unsafe) let storage = storage
@@ -46,8 +52,8 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
         Self.heading.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
             let level = m.range(at: 1).length
-            let font: NSFont
-            let color: NSColor
+            let font: PlatformFont
+            let color: PlatformColor
             switch level {
             case 1: font = Palette.sans(22, weight: .semibold); color = Palette.text
             case 2: font = Palette.sans(14, weight: .semibold); color = Palette.accent
@@ -64,7 +70,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
             guard let m else { return }
             let marker = m.range(at: 2)
             if marker.length == 1 {
-                storage.addAttributes([.foregroundColor: NSColor.clear, .marginBullet: true], range: marker)
+                storage.addAttributes([.foregroundColor: PlatformColor.clear, .marginBullet: true], range: marker)
             } else {
                 storage.addAttribute(.foregroundColor, value: Palette.accent, range: marker)
             }
@@ -74,7 +80,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
             let checked = text.substring(with: m.range(at: 2)).lowercased() == "x"
             let marker = NSRange(location: m.range.location + m.range(at: 1).length, length: m.range.length - m.range(at: 1).length)
             storage.removeAttribute(.marginBullet, range: marker)
-            storage.addAttributes([.foregroundColor: NSColor.clear, .font: NSFont.monospacedSystemFont(ofSize: 11, weight: .regular)], range: marker)
+            storage.addAttributes([.foregroundColor: PlatformColor.clear, .font: PlatformFont.monospacedSystemFont(ofSize: 11, weight: .regular)], range: marker)
             storage.addAttribute(.marginCheckbox, value: checked, range: NSRange(location: marker.location + 2, length: 3))
             if checked {
                 let line = text.lineRange(for: m.range)
@@ -84,20 +90,20 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
         }
         Self.bold.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
-            let font = (storage.attribute(.font, at: m.range.location, effectiveRange: nil) as? NSFont) ?? bodyFont
-            storage.addAttribute(.font, value: NSFontManager.shared.convert(font, toHaveTrait: .boldFontMask), range: m.range)
+            let font = (storage.attribute(.font, at: m.range.location, effectiveRange: nil) as? PlatformFont) ?? bodyFont
+            storage.addAttribute(.font, value: font.adding(bold: true), range: m.range)
             dimMarkers(storage, m.range, 2)
         }
         Self.italic.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
-            let font = (storage.attribute(.font, at: m.range.location, effectiveRange: nil) as? NSFont) ?? bodyFont
-            storage.addAttribute(.font, value: NSFontManager.shared.convert(font, toHaveTrait: .italicFontMask), range: m.range)
+            let font = (storage.attribute(.font, at: m.range.location, effectiveRange: nil) as? PlatformFont) ?? bodyFont
+            storage.addAttribute(.font, value: font.adding(italic: true), range: m.range)
             dimMarkers(storage, m.range, 1)
         }
         Self.code.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
             storage.addAttributes([
-                .font: NSFont.monospacedSystemFont(ofSize: 13.5, weight: .regular),
+                .font: PlatformFont.monospacedSystemFont(ofSize: 13.5, weight: .regular),
                 .backgroundColor: Palette.codeBG, .foregroundColor: Palette.text,
             ], range: m.range)
         }
@@ -128,5 +134,23 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
         let markerStart = m.range.location + m.range(at: 1).length
         guard index >= markerStart, index < NSMaxRange(m.range) else { return nil }
         return m.range(at: 2)
+    }
+}
+
+
+extension PlatformFont {
+    func adding(bold: Bool = false, italic: Bool = false) -> PlatformFont {
+        #if os(macOS)
+        var traits = fontDescriptor.symbolicTraits
+        if bold { traits.insert(.bold) }
+        if italic { traits.insert(.italic) }
+        return PlatformFont(descriptor: fontDescriptor.withSymbolicTraits(traits), size: pointSize) ?? self
+        #else
+        var traits = fontDescriptor.symbolicTraits
+        if bold { traits.insert(.traitBold) }
+        if italic { traits.insert(.traitItalic) }
+        guard let d = fontDescriptor.withSymbolicTraits(traits) else { return self }
+        return PlatformFont(descriptor: d, size: pointSize)
+        #endif
     }
 }

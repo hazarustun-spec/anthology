@@ -11,8 +11,8 @@ struct ConflictTests {
         #expect(try store.notesWithConflicts().isEmpty)
     }
 
-    @Test func iCloudRootPathMatchesContainer() {
-        #expect(MarginPaths.iCloudContainerID == "iCloud.com.marginnotes.Margin")
-        #expect(MarginPaths.iCloudContainerFolder == "iCloud~com~marginnotes~Margin")
+    @Test func noContainerOutsideApps() {
+        #expect(MarginPaths.iCloudContainerID == nil)
+        #expect(MarginPaths.iCloudRoot() == nil)
     }
 }

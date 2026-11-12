@@ -1,15 +1,26 @@
 import Foundation
 
 public enum MarginPaths {
-    public static let bundleID = "com.marginnotes.Margin"
-    public static let iCloudContainerID = "iCloud.com.marginnotes.Margin"
-    public static let iCloudContainerFolder = "iCloud~com~marginnotes~Margin"
+    /// The app's iCloud container id comes from its Info.plist (`MarginICloudContainer`), set per build.
+    public static var iCloudContainerID: String? {
+        Bundle.main.object(forInfoDictionaryKey: "MarginICloudContainer") as? String
+    }
 
-    /// The app's iCloud Documents folder via the entitlement (apps only; returns nil without iCloud).
-    /// Call off the main thread: the first call may take a while.
+    /// The app's iCloud Documents folder via the entitlement (apps only; nil without iCloud).
     public static func iCloudRoot() -> URL? {
-        FileManager.default.url(forUbiquityContainerIdentifier: iCloudContainerID)?
+        guard let id = iCloudContainerID else { return nil }
+        return FileManager.default.url(forUbiquityContainerIdentifier: id)?
             .appendingPathComponent("Documents", isDirectory: true)
+    }
+
+    /// Where the Mac app records the notes folder it uses, so margin-mcp (no entitlements) finds it.
+    public static var rootPointer: URL {
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Margin/notes-root")
+    }
+
+    public static func recordRoot(_ url: URL) {
+        try? FileManager.default.createDirectory(at: rootPointer.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? url.path.write(to: rootPointer, atomically: true, encoding: .utf8)
     }
 
     /// Notes folder used before iCloud was enabled.
@@ -27,9 +38,10 @@ public enum MarginPaths {
         if let custom = env["MARGIN_ROOT"], !custom.isEmpty {
             return URL(fileURLWithPath: (custom as NSString).expandingTildeInPath, isDirectory: true)
         }
-        let home = URL(fileURLWithPath: NSHomeDirectory())
-        let iCloud = home.appendingPathComponent("Library/Mobile Documents/\(iCloudContainerFolder)/Documents", isDirectory: true)
-        if FileManager.default.fileExists(atPath: iCloud.path) { return iCloud }
-        return home.appendingPathComponent("Library/Application Support/Margin/Notes", isDirectory: true)
+        if let recorded = try? String(contentsOf: rootPointer, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines),
+           !recorded.isEmpty, FileManager.default.fileExists(atPath: recorded) {
+            return URL(fileURLWithPath: recorded, isDirectory: true)
+        }
+        return localRoot
     }
 }
