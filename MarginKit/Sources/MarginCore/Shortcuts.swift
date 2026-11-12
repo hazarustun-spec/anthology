@@ -63,7 +63,7 @@ extension MarginStore {
     /// Appends a timestamped line to the quick-notes note of the folder's topic (created on first use).
     @discardableResult
     public func quickCapture(_ text: String, projectPath: String?, by: ChangeSource, noteTitle: String) throws -> NoteRef {
-        beginWrite(); defer { endWrite() }
+        try beginWrite(); defer { endWrite() }
         let topic = try resolveTopic(projectPath: projectPath, explicitTitle: nil)
         let stamp = Date().formatted(.dateTime.year().month(.twoDigits).day(.twoDigits).hour(.twoDigits(amPM: .omitted)).minute(.twoDigits))
         let line = "- \(stamp) · \(text.replacingOccurrences(of: "\n", with: " "))"
@@ -134,7 +134,8 @@ public enum ClaudeHookConfig {
         return groups.contains { (($0["hooks"] as? [[String: Any]]) ?? []).contains { $0["command"] as? String == command } }
     }
 
-    public static func install(at url: URL = userSettings, command: String) throws {
+    public static func install(at link: URL = userSettings, command: String) throws {
+        let url = link.resolvingSymlinksInPath()
         var root = FileManager.default.fileExists(atPath: url.path) ? try MCPConfigFile.read(url) : [:]
         try MCPConfigFile.backup(url)
         var hooks = root["hooks"] as? [String: Any] ?? [:]
@@ -145,7 +146,8 @@ public enum ClaudeHookConfig {
         try MCPConfigFile.write(root, to: url)
     }
 
-    public static func remove(at url: URL = userSettings) throws {
+    public static func remove(at link: URL = userSettings) throws {
+        let url = link.resolvingSymlinksInPath()
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         var root = try MCPConfigFile.read(url)
         guard var hooks = root["hooks"] as? [String: Any], let groups = hooks[event] as? [[String: Any]] else { return }

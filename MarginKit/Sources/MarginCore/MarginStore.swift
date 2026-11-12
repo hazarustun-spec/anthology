@@ -6,6 +6,8 @@ public final class MarginStore: @unchecked Sendable {
     let lock = NSRecursiveLock()
     private var writeDepth = 0
     private var lockFD: Int32 = -1
+    /// How long a write waits for another process's lock before failing.
+    public var lockTimeout: TimeInterval = 8
 
     static let topicFile = "_topic.json"
     static let reservedDirectories: Set<String> = [".trash", ".history"]
@@ -41,7 +43,7 @@ public final class MarginStore: @unchecked Sendable {
 
     @discardableResult
     public func createTopic(title: String, source: String?) throws -> Topic {
-        beginWrite(); defer { endWrite() }
+        try beginWrite(); defer { endWrite() }
         let existing = try listTopics()
         var dirName: String
         repeat {
@@ -49,7 +51,7 @@ public final class MarginStore: @unchecked Sendable {
         } while FileManager.default.fileExists(atPath: root.appendingPathComponent(dirName).path)
         let topic = Topic(
             id: newID(),
-            title: title,
+            title: singleLine(title),
             sources: source.map { [$0] } ?? [],
             createdAt: MarginDate.now(),
             sortOrder: (existing.map(\.sortOrder).max() ?? -1) + 1,
@@ -60,15 +62,15 @@ public final class MarginStore: @unchecked Sendable {
     }
 
     public func renameTopic(id: String, title: String) throws -> Topic {
-        beginWrite(); defer { endWrite() }
+        try beginWrite(); defer { endWrite() }
         var topic = try self.topic(id: id)
-        topic.title = title
+        topic.title = singleLine(title)
         try save(topic)
         return topic
     }
 
     public func addSource(topicID: String, source: String) throws {
-        beginWrite(); defer { endWrite() }
+        try beginWrite(); defer { endWrite() }
         var topic = try self.topic(id: topicID)
         guard !topic.sources.contains(source) else { return }
         topic.sources.append(source)
@@ -77,7 +79,7 @@ public final class MarginStore: @unchecked Sendable {
 
     /// Finds or creates the topic for a save. See spec §6.2 for the lookup order.
     public func resolveTopic(projectPath: String?, explicitTitle: String?) throws -> Topic {
-        beginWrite(); defer { endWrite() }
+        try beginWrite(); defer { endWrite() }
         let topics = try listTopics()
 
         if let title = explicitTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
@@ -111,13 +113,24 @@ public final class MarginStore: @unchecked Sendable {
 
     /// Serializes mutations across processes (every Claude session runs its own margin-mcp, plus the app).
     /// Reentrant within this process. Pair with `endWrite()` via `defer`.
-    func beginWrite() {
+    func beginWrite() throws {
         lock.lock()
         writeDepth += 1
         guard writeDepth == 1 else { return }
         let path = root.appendingPathComponent(".margin.lock").path
-        lockFD = open(path, O_CREAT | O_RDWR, 0o644)
-        if lockFD >= 0 { while flock(lockFD, LOCK_EX) != 0 && errno == EINTR {} }
+        lockFD = open(path, O_CREAT | O_RDWR | O_NOFOLLOW, 0o600)
+        guard lockFD >= 0 else { return }
+        let deadline = Date().addingTimeInterval(lockTimeout)
+        while flock(lockFD, LOCK_EX | LOCK_NB) != 0 {
+            if Date() >= deadline {
+                close(lockFD)
+                lockFD = -1
+                writeDepth -= 1
+                lock.unlock()
+                throw MarginError.busy
+            }
+            usleep(50_000)
+        }
     }
 
     func endWrite() {

@@ -451,6 +451,36 @@
           }
         }
       }
+    },
+    "Undo": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri al"
+          }
+        }
+      }
+    },
+    "Restore the note as it was before this change": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notu bu değişiklikten önceki haline döndür"
+          }
+        }
+      }
+    },
+    "Margin is busy saving from another window or chat. Try again in a moment.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Margin başka bir pencereden ya da sohbetten kaydediyor. Birazdan tekrar dene."
+          }
+        }
+      }
     }
   }
 }

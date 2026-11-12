@@ -5,6 +5,9 @@ import SwiftUI
 /// Used for docs/README images and for verifying UI without screen-recording permission.
 enum Snapshot {
     static var request: (url: URL, delay: Double)? {
+        #if !DEBUG
+        return nil
+        #endif
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count else { return nil }
         var delay = 1.5

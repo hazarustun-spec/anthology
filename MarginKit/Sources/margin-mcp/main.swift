@@ -61,7 +61,7 @@ func toolArgs(_ values: [String: Value]?) -> [String: ToolArg] {
     for (key, value) in values ?? [:] {
         if let i = value.intValue { out[key] = .int(i) }
         else if let s = value.stringValue { out[key] = .string(s) }
-        else if let d = value.doubleValue { out[key] = .int(Int(d)) }
+        else if let d = value.doubleValue { out[key] = ToolArg(double: d) }
     }
     return out
 }

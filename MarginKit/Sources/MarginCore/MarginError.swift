@@ -7,6 +7,7 @@ public enum MarginError: Error, Equatable, LocalizedError {
     case staleRevision(expected: Int, actual: Int)
     case ambiguousTopic([String])
     case conflict(String)
+    case busy
 
     public var errorDescription: String? {
         switch self {
@@ -17,6 +18,7 @@ public enum MarginError: Error, Equatable, LocalizedError {
             "Note changed since it was read (expected revision \(expected), now \(actual))."
         case .ambiguousTopic(let titles): "Several topics match: \(titles.joined(separator: ", "))"
         case .conflict(let path): "Note has unresolved iCloud conflict versions: \(path)"
+        case .busy: "Margin is busy saving from another window or chat. Try again in a moment."
         }
     }
 }

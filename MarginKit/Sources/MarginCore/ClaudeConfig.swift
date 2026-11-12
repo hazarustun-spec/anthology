@@ -26,8 +26,10 @@ public enum MCPConfigFile {
     }
 
     /// Adds or replaces the `margin` server. Backs the file up first; refuses to touch malformed JSON.
-    public static func install(at url: URL, entry: [String: Any]) throws {
+    public static func install(at link: URL, entry: [String: Any]) throws {
+        let url = link.resolvingSymlinksInPath()
         var root = FileManager.default.fileExists(atPath: url.path) ? try read(url) : [:]
+        if let existing = root["mcpServers"], !(existing is [String: Any]) { throw ConfigError.malformed(url.path) }
         try backup(url)
         var servers = root["mcpServers"] as? [String: Any] ?? [:]
         servers[serverName] = entry
@@ -35,7 +37,8 @@ public enum MCPConfigFile {
         try write(root, to: url)
     }
 
-    public static func remove(at url: URL) throws {
+    public static func remove(at link: URL) throws {
+        let url = link.resolvingSymlinksInPath()
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         var root = try read(url)
         guard var servers = root["mcpServers"] as? [String: Any], servers[serverName] != nil else { return }

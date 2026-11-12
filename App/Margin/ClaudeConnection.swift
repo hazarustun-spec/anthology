@@ -27,6 +27,10 @@ final class ClaudeConnection {
         if code == .connected, !ClaudeHookConfig.isInstalled(command: hookCommand) { code = .differentBinary }
         status[.claudeCode] = code
         status[.claudeDesktop] = MCPConfigFile.status(at: ClaudePaths.desktopConfig, binary: helperPath)
+        // The installed helper must be byte-identical to the one in this app; otherwise offer "Update".
+        if !installedHelperMatchesBundle {
+            for client in Client.allCases where status[client] == .connected { status[client] = .differentBinary }
+        }
     }
 
     func connect(_ client: Client) {
@@ -86,6 +90,14 @@ final class ClaudeConnection {
         if !running.isEmpty, let appURL {
             _ = try? await NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration())
         }
+    }
+
+    private var bundledHelper: URL { Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/margin-mcp") }
+
+    private var installedHelperMatchesBundle: Bool {
+        guard let a = try? Data(contentsOf: bundledHelper, options: .mappedIfSafe),
+              let b = try? Data(contentsOf: ClaudePaths.installedHelper, options: .mappedIfSafe) else { return false }
+        return a == b
     }
 
     /// Copies the helper out of the app bundle to a stable path that survives moving the app.

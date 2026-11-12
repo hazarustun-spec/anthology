@@ -24,7 +24,13 @@ struct NoteDetail: View {
                 if let last = library.lastChange(for: noteID) {
                     Button { showHistory.toggle() } label: { SourceBadge(entry: last) }
                         .buttonStyle(.plain)
-                        .popover(isPresented: $showHistory, arrowEdge: .bottom) { HistoryList(entries: library.history(for: noteID)) }
+                        .popover(isPresented: $showHistory, arrowEdge: .bottom) {
+                            HistoryList(entries: library.history(for: noteID), canRestore: { library.hasVersion(noteID: noteID, revision: $0 - 1) }) { rev in
+                                library.restore(noteID: noteID, revision: rev - 1)
+                                showHistory = false
+                                load()
+                            }
+                        }
                 }
             }
             .padding(.top, 28).padding(.bottom, 8)
@@ -127,6 +133,8 @@ struct SourceBadge: View {
 
 struct HistoryList: View {
     let entries: [HistoryEntry]
+    var canRestore: (Int) -> Bool = { _ in false }
+    var onRestore: (Int) -> Void = { _ in }
 
     var body: some View {
         ScrollView {
@@ -143,6 +151,13 @@ struct HistoryList: View {
                                 Text(e.at, format: .dateTime.day().month().hour().minute())
                             }
                             .font(.system(size: 11)).foregroundStyle(Color(palette: Palette.tertiary))
+                        }
+                        Spacer(minLength: 6)
+                        if e.rev > 1, canRestore(e.rev) {
+                            Button("Undo") { onRestore(e.rev) }
+                                .buttonStyle(.plain).font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color(palette: Palette.accent))
+                                .help("Restore the note as it was before this change")
                         }
                     }
                     .padding(.vertical, 7)

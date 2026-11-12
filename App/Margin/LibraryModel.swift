@@ -142,6 +142,17 @@ final class LibraryModel {
 
     func clearFreshLines(_ noteID: String) { freshLines[noteID] = nil }
 
+    /// Puts back the body a change replaced. `revision` is the revision that existed before that change.
+    func restore(noteID: String, revision: Int) {
+        guard let store, let ref = try? store.restore(noteID: noteID, revision: revision, by: .app) else { return }
+        ownRevisions[noteID] = ref.meta.revision
+        refresh(markChanges: false, sync: true)
+    }
+
+    func hasVersion(noteID: String, revision: Int) -> Bool {
+        ((try? store?.versions(noteID: noteID)) ?? []).contains { $0.revision == revision }
+    }
+
     // MARK: Loading
 
     private func refreshIfChanged() {
