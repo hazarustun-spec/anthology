@@ -3,37 +3,71 @@ import SwiftUI
 
 struct TopicList: View {
     @Environment(LibraryModel.self) private var library
-    @Binding var selection: String?
+    @State private var renaming: String?
+    @State private var draftTitle = ""
+    @State private var addingTopic = false
 
     var body: some View {
-        List(selection: $selection) {
-            Section("Topics") {
+        @Bindable var library = library
+        ScrollView {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Topics")
+                    .font(.system(size: 11, weight: .medium)).foregroundStyle(Color(palette: Palette.tertiary))
+                    .padding(.horizontal, 10).padding(.bottom, 6)
                 ForEach(library.topics) { topic in
-                    let notes = library.notes(for: topic.id)
-                    let fresh = notes.contains { library.isRecentlyChanged($0.meta.id) }
-                    Label {
-                        HStack {
-                            Text(topic.title)
-                            Spacer()
-                            if fresh {
-                                Circle().fill(Color.accentColor).frame(width: 6, height: 6)
-                                    .transition(.scale.combined(with: .opacity))
-                            }
-                            Text("\(notes.count)").foregroundStyle(.tertiary).monospacedDigit()
-                        }
-                    } icon: {
-                        Image(systemName: "folder")
-                    }
-                    .tag(topic.id)
+                    row(topic)
+                }
+                if addingTopic {
+                    TextField("New topic", text: $draftTitle)
+                        .textFieldStyle(.plain).padding(8)
+                        .onSubmit { library.createTopic(title: draftTitle); addingTopic = false }
                 }
             }
+            .padding(.horizontal, 10).padding(.top, 8)
         }
-        .animation(.spring(duration: 0.35), value: library.recentlyChanged)
-        .navigationSplitViewColumnWidth(min: 180, ideal: 220)
-        .overlay {
-            if library.topics.isEmpty {
-                EmptyState(symbol: "sparkles", text: "Ask Claude to save something to Margin")
+        .scrollContentBackground(.hidden)
+        .background(Color(palette: Palette.sidebar))
+        .overlay(alignment: .bottomLeading) {
+            Button { draftTitle = ""; addingTopic = true } label: {
+                Label("New topic", systemImage: "plus").font(.system(size: 12))
             }
+            .buttonStyle(.plain).foregroundStyle(Color(palette: Palette.secondary)).padding(14)
+        }
+        .animation(.spring(duration: 0.35), value: library.freshNotes)
+    }
+
+    @ViewBuilder
+    private func row(_ topic: Topic) -> some View {
+        let selected = library.selectedTopicID == topic.id
+        HStack(spacing: 8) {
+            Image(systemName: selected ? "folder.fill" : "folder")
+                .font(.system(size: 12)).foregroundStyle(Color(palette: selected ? Palette.accent : Palette.tertiary))
+            if renaming == topic.id {
+                TextField("", text: $draftTitle).textFieldStyle(.plain)
+                    .onSubmit { library.renameTopic(topic.id, to: draftTitle); renaming = nil }
+            } else {
+                Text(topic.title).lineLimit(1).foregroundStyle(Color(palette: Palette.text))
+            }
+            Spacer(minLength: 4)
+            if library.topicHasFresh(topic.id) {
+                Circle().fill(Color(palette: Palette.accent)).frame(width: 6, height: 6)
+                    .transition(.scale.combined(with: .opacity))
+            }
+            Text("\(library.notes(for: topic.id).count)")
+                .font(.system(size: 11)).monospacedDigit().foregroundStyle(Color(palette: Palette.tertiary))
+        }
+        .font(.system(size: 13))
+        .padding(.horizontal, 10).padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(palette: selected ? Palette.card : .clear))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color(palette: selected ? Palette.hairline : .clear), lineWidth: 0.5))
+        )
+        .contentShape(Rectangle())
+        .onTapGesture { library.selectTopic(topic.id) }
+        .contextMenu {
+            Button("Rename") { draftTitle = topic.title; renaming = topic.id }
+            Button("New note") { library.createNote(in: topic.id) }
         }
     }
 }

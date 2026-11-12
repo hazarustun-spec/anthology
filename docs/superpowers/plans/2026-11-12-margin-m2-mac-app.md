@@ -2,11 +2,11 @@
 
 > Executed inline (superpowers:executing-plans). Core logic is TDD; UI is verified with `--snapshot` renders.
 
-**Goal:** Turn the bare M1 window into the product: Ink theme, editable notes, history, menu bar, one-click Claude connection, EN/TR.
+**Goal:** Turn the bare M1 window into the product: Blocks theme, editable notes, history, menu bar, one-click Claude connection, EN/TR.
 **Spec:** `docs/superpowers/specs/2026-11-12-margin-design.md` (§6.5, §7.1)
 
 ## Global Constraints
-- Ink palette from spec §7.1; dark is the default appearance, light follows system.
+- Blocks palette from spec §7.1 (sage accent, card layout); appearance follows system by default.
 - App writes go through `MarginStore` with `by: .app`; stale writes never overwrite Claude's text (spec §6.4).
 - No shrill sounds. Mac haptic feedback (`NSHapticFeedbackManager`) on checkbox toggles only.
 - English + Turkish via a String Catalog.

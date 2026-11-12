@@ -20,7 +20,10 @@ enum Snapshot {
             styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false
         )
         window.titlebarAppearsTransparent = true
-        window.contentView = NSHostingView(rootView: LibraryView().environment(library))
+        let args = ProcessInfo.processInfo.arguments
+        window.appearance = NSAppearance(named: args.contains("--light") ? .aqua : .darkAqua)
+        if let i = args.firstIndex(of: "--note"), i + 1 < args.count { library.open(noteID: args[i + 1]) }
+        window.contentView = NSHostingView(rootView: LibraryView(snapshotLayout: true).environment(library))
         window.orderFrontRegardless()
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             guard let view = window.contentView, let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { exit(1) }
