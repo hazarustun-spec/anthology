@@ -28,7 +28,7 @@ extension MarginStore {
         let url = historyURL(topic: ref.topic, noteID: noteID)
         guard FileManager.default.fileExists(atPath: url.path) else { return [] }
         let text = String(decoding: try FileIO.read(url), as: UTF8.self)
-        return text.split(separator: "\n").compactMap { try? Self.decoder.decode(HistoryEntry.self, from: Data($0.utf8)) }
+        return text.split(separator: "\n").compactMap { try? HistoryEntry.decoder.decode(HistoryEntry.self, from: Data($0.utf8)) }
     }
 
     public func search(_ query: String, limit: Int = 20) throws -> [(NoteRef, snippet: String)] {
@@ -66,7 +66,7 @@ extension MarginStore {
         let file = NoteFile(meta: NoteMeta(id: newID(), title: title, created: now, updated: now, revision: 1), body: body)
         let url = dir.appendingPathComponent(name)
         try FileIO.write(Data(file.serialize().utf8), to: url)
-        try appendHistory(topic: topic, noteID: file.meta.id, entry: HistoryEntry(rev: 1, at: now, by: by, summary: summary, project: project))
+        try appendHistory(topic: topic, noteID: file.meta.id, entry: HistoryEntry(rev: 1, at: Date(), by: by, summary: summary, project: project))
         return NoteRef(topic: topic, meta: file.meta, fileURL: url)
     }
 
@@ -132,7 +132,7 @@ extension MarginStore {
         try FileIO.write(Data(updated.serialize().utf8), to: ref.fileURL)
         try appendHistory(
             topic: ref.topic, noteID: updated.meta.id,
-            entry: HistoryEntry(rev: updated.meta.revision, at: updated.meta.updated, by: by, summary: summary, project: project)
+            entry: HistoryEntry(rev: updated.meta.revision, at: Date(), by: by, summary: summary, project: project)
         )
         return NoteRef(topic: ref.topic, meta: updated.meta, fileURL: ref.fileURL)
     }
@@ -165,10 +165,7 @@ extension MarginStore {
     private func appendHistory(topic: Topic, noteID: String, entry: HistoryEntry) throws {
         let url = historyURL(topic: topic, noteID: noteID)
         var existing = FileManager.default.fileExists(atPath: url.path) ? try FileIO.read(url) : Data()
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        existing.append(try encoder.encode(entry))
+        existing.append(try HistoryEntry.encoder.encode(entry))
         existing.append(0x0A)
         try FileIO.write(existing, to: url)
     }
