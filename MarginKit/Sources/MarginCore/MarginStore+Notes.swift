@@ -140,9 +140,21 @@ extension MarginStore {
     func loadNotes(in topic: Topic) throws -> [(NoteRef, NoteFile)] {
         let dir = directory(of: topic)
         let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
-        return files.filter { $0.pathExtension == "md" }.compactMap { url in
-            guard let data = try? FileIO.read(url), let file = try? NoteFile.parse(String(decoding: data, as: UTF8.self)) else { return nil }
-            return (NoteRef(topic: topic, meta: file.meta, fileURL: url), file)
+        return files.filter { $0.pathExtension.lowercased() == "md" }.compactMap { url in
+            guard let data = try? FileIO.read(url) else { return nil }
+            let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? Date()
+            do {
+                let file = try NoteFile.parseOrAdopt(
+                    String(decoding: data, as: UTF8.self),
+                    stableKey: "\(topic.directoryName)/\(url.lastPathComponent)",
+                    title: url.deletingPathExtension().lastPathComponent,
+                    date: Date(timeIntervalSince1970: modified.timeIntervalSince1970.rounded(.down))
+                )
+                return (NoteRef(topic: topic, meta: file.meta, fileURL: url), file)
+            } catch {
+                FileHandle.standardError.write(Data("[margin] skipping unreadable note \(url.path): \(error)\n".utf8))
+                return nil
+            }
         }
     }
 

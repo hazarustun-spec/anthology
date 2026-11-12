@@ -20,10 +20,13 @@ public struct NoteMeta: Codable, Equatable, Sendable {
 public struct NoteFile: Equatable, Sendable {
     public var meta: NoteMeta
     public var body: String
+    /// Front-matter lines Margin does not own (e.g. `tags:` added in Obsidian). Written back verbatim.
+    public var extraFrontMatter: [String]
 
-    public init(meta: NoteMeta, body: String) {
+    public init(meta: NoteMeta, body: String, extraFrontMatter: [String] = []) {
         self.meta = meta
         self.body = body
+        self.extraFrontMatter = extraFrontMatter
     }
 
     public func serialize() -> String {
@@ -34,24 +37,30 @@ public struct NoteFile: Equatable, Sendable {
         created: \(MarginDate.format(meta.created))
         updated: \(MarginDate.format(meta.updated))
         revision: \(meta.revision)
-        ---
 
-        """ + body
+        """ + extraFrontMatter.map { $0 + "\n" }.joined() + "---\n" + body
     }
 
-    public static func parse(_ text: String) throws -> NoteFile {
+    public static func parse(_ raw: String) throws -> NoteFile {
+        let text = normalize(raw)
         guard text.hasPrefix("---\n") else { throw MarginError.malformedNote("missing front matter") }
         let afterOpen = text.index(text.startIndex, offsetBy: 4)
         guard let close = text.range(of: "\n---\n", range: afterOpen..<text.endIndex)
                 ?? (text.hasSuffix("\n---") ? text.range(of: "\n---", options: .backwards) : nil)
         else { throw MarginError.malformedNote("unterminated front matter") }
 
+        let ownKeys: Set<String> = ["id", "title", "created", "updated", "revision"]
         var fields: [String: String] = [:]
-        for line in text[afterOpen..<close.lowerBound].split(separator: "\n") {
-            guard let colon = line.firstIndex(of: ":") else { continue }
-            let key = line[..<colon].trimmingCharacters(in: .whitespaces)
-            let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
-            fields[key] = value
+        var extra: [String] = []
+        for line in text[afterOpen..<close.lowerBound].split(separator: "\n", omittingEmptySubsequences: false) {
+            if let colon = line.firstIndex(of: ":") {
+                let key = line[..<colon].trimmingCharacters(in: .whitespaces)
+                if ownKeys.contains(key), fields[key] == nil, !line.hasPrefix(" ") {
+                    fields[key] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+                    continue
+                }
+            }
+            if !line.isEmpty { extra.append(String(line)) }
         }
         guard let id = fields["id"], !id.isEmpty,
               let rawTitle = fields["title"],
@@ -61,7 +70,40 @@ public struct NoteFile: Equatable, Sendable {
         else { throw MarginError.malformedNote("missing or invalid keys") }
 
         let meta = NoteMeta(id: id, title: unquote(rawTitle), created: created, updated: updated, revision: revision)
-        return NoteFile(meta: meta, body: String(text[close.upperBound...]))
+        return NoteFile(meta: meta, body: String(text[close.upperBound...]), extraFrontMatter: extra)
+    }
+
+    /// Strips a UTF-8 BOM and converts CRLF line endings to LF.
+    static func normalize(_ text: String) -> String {
+        var t = text
+        if t.hasPrefix("\u{FEFF}") { t.removeFirst() }
+        return t.contains("\r\n") ? t.replacingOccurrences(of: "\r\n", with: "\n") : t
+    }
+
+    /// Reads a note, or adopts a plain Markdown file (no front matter) as revision 0 with a stable id.
+    static func parseOrAdopt(_ text: String, stableKey: String, title: String, date: Date) throws -> NoteFile {
+        do {
+            return try parse(text)
+        } catch MarginError.malformedNote(let why) where why == "missing front matter" {
+            let meta = NoteMeta(id: stableID(for: stableKey), title: title, created: date, updated: date, revision: 0)
+            return NoteFile(meta: meta, body: normalize(text))
+        }
+    }
+
+    /// Deterministic 26-char id for adopted files (FNV-1a based, Crockford alphabet, "MD" prefix).
+    static func stableID(for key: String) -> String {
+        var out = "MD"
+        var seed: UInt64 = 0xcbf29ce484222325
+        while out.count < 26 {
+            var h = seed
+            for b in key.utf8 { h = (h ^ UInt64(b)) &* 0x100000001b3 }
+            for _ in 0..<12 where out.count < 26 {
+                out.append(crockford[Int(h % 32)])
+                h /= 32
+            }
+            seed = h &+ 0x9e3779b97f4a7c15
+        }
+        return out
     }
 
     static func quote(_ s: String) -> String {
