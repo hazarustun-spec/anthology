@@ -1,0 +1,171 @@
+import Foundation
+
+extension MarginStore {
+    // MARK: Reading
+
+    public func listNotes(topicID: String) throws -> [NoteRef] {
+        lock.lock(); defer { lock.unlock() }
+        return try loadNotes(in: topic(id: topicID)).map(\.0).sorted { $0.meta.updated > $1.meta.updated }
+    }
+
+    public func findNote(id: String) throws -> (NoteRef, NoteFile) {
+        lock.lock(); defer { lock.unlock() }
+        for topic in try listTopics() {
+            if let hit = try loadNotes(in: topic).first(where: { $0.0.meta.id == id }) { return hit }
+        }
+        throw MarginError.noteNotFound(id)
+    }
+
+    public func findNote(topicID: String, title: String) throws -> (NoteRef, NoteFile)? {
+        lock.lock(); defer { lock.unlock() }
+        let wanted = searchKey(title)
+        return try loadNotes(in: topic(id: topicID)).first { searchKey($0.0.meta.title) == wanted }
+    }
+
+    public func history(noteID: String) throws -> [HistoryEntry] {
+        lock.lock(); defer { lock.unlock() }
+        let (ref, _) = try findNote(id: noteID)
+        let url = historyURL(topic: ref.topic, noteID: noteID)
+        guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+        let text = String(decoding: try FileIO.read(url), as: UTF8.self)
+        return text.split(separator: "\n").compactMap { try? Self.decoder.decode(HistoryEntry.self, from: Data($0.utf8)) }
+    }
+
+    public func search(_ query: String, limit: Int = 20) throws -> [(NoteRef, snippet: String)] {
+        lock.lock(); defer { lock.unlock() }
+        let q = searchKey(query.trimmingCharacters(in: .whitespacesAndNewlines))
+        guard !q.isEmpty else { return [] }
+        var hits: [(NoteRef, snippet: String)] = []
+        for topic in try listTopics() {
+            for (ref, file) in try loadNotes(in: topic) {
+                let titleHit = searchKey(ref.meta.title).contains(q)
+                let line = file.body.split(separator: "\n").first { searchKey(String($0)).contains(q) }
+                guard titleHit || line != nil else { continue }
+                let snippet = String((line.map(String.init) ?? String(file.body.prefix(160))).prefix(160))
+                hits.append((ref, snippet: snippet))
+            }
+        }
+        return Array(hits.sorted { $0.0.meta.updated > $1.0.meta.updated }.prefix(limit))
+    }
+
+    // MARK: Writing
+
+    @discardableResult
+    public func createNote(topicID: String, title: String, body: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
+        lock.lock(); defer { lock.unlock() }
+        let topic = try topic(id: topicID)
+        let dir = directory(of: topic)
+        let base = slugify(title)
+        var name = "\(base).md"
+        var n = 2
+        while FileManager.default.fileExists(atPath: dir.appendingPathComponent(name).path) {
+            name = "\(base)-\(n).md"
+            n += 1
+        }
+        let now = MarginDate.now()
+        let file = NoteFile(meta: NoteMeta(id: newID(), title: title, created: now, updated: now, revision: 1), body: body)
+        let url = dir.appendingPathComponent(name)
+        try FileIO.write(Data(file.serialize().utf8), to: url)
+        try appendHistory(topic: topic, noteID: file.meta.id, entry: HistoryEntry(rev: 1, at: now, by: by, summary: summary, project: project))
+        return NoteRef(topic: topic, meta: file.meta, fileURL: url)
+    }
+
+    @discardableResult
+    public func appendToNote(id: String, text: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
+        lock.lock(); defer { lock.unlock() }
+        let (ref, file) = try findNote(id: id)
+        let body = file.body.isEmpty ? text : file.body + "\n\n" + text
+        return try write(ref: ref, file: file, newBody: body, by: by, summary: summary, project: project)
+    }
+
+    /// Replaces the body. Rejected with `.staleRevision` when the note changed since `baseRevision` was read.
+    @discardableResult
+    public func updateNote(id: String, baseRevision: Int, body: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
+        lock.lock(); defer { lock.unlock() }
+        let (ref, file) = try findNote(id: id)
+        guard file.meta.revision == baseRevision else {
+            throw MarginError.staleRevision(expected: baseRevision, actual: file.meta.revision)
+        }
+        return try write(ref: ref, file: file, newBody: body, by: by, summary: summary, project: project)
+    }
+
+    public func deleteNote(id: String) throws {
+        lock.lock(); defer { lock.unlock() }
+        let (ref, _) = try findNote(id: id)
+        let trashDir = root.appendingPathComponent(".trash/\(ref.topic.directoryName)", isDirectory: true)
+        var dest = trashDir.appendingPathComponent(ref.fileURL.lastPathComponent)
+        if FileManager.default.fileExists(atPath: dest.path) {
+            dest = trashDir.appendingPathComponent("\(ref.meta.id)-\(ref.fileURL.lastPathComponent)")
+        }
+        try FileIO.move(ref.fileURL, to: dest)
+    }
+
+    @discardableResult
+    public func moveNote(id: String, toTopicID: String) throws -> NoteRef {
+        lock.lock(); defer { lock.unlock() }
+        let (ref, _) = try findNote(id: id)
+        let target = try topic(id: toTopicID)
+        guard target.id != ref.topic.id else { return ref }
+        let dir = directory(of: target)
+        let base = ref.fileURL.deletingPathExtension().lastPathComponent
+        var dest = dir.appendingPathComponent("\(base).md")
+        var n = 2
+        while FileManager.default.fileExists(atPath: dest.path) {
+            dest = dir.appendingPathComponent("\(base)-\(n).md")
+            n += 1
+        }
+        try FileIO.move(ref.fileURL, to: dest)
+        let oldHistory = historyURL(topic: ref.topic, noteID: id)
+        if FileManager.default.fileExists(atPath: oldHistory.path) {
+            try FileIO.move(oldHistory, to: historyURL(topic: target, noteID: id))
+        }
+        return NoteRef(topic: target, meta: ref.meta, fileURL: dest)
+    }
+
+    // MARK: Internals
+
+    private func write(ref: NoteRef, file: NoteFile, newBody: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
+        var updated = file
+        updated.body = newBody
+        updated.meta.revision += 1
+        updated.meta.updated = MarginDate.now()
+        try FileIO.write(Data(updated.serialize().utf8), to: ref.fileURL)
+        try appendHistory(
+            topic: ref.topic, noteID: updated.meta.id,
+            entry: HistoryEntry(rev: updated.meta.revision, at: updated.meta.updated, by: by, summary: summary, project: project)
+        )
+        return NoteRef(topic: ref.topic, meta: updated.meta, fileURL: ref.fileURL)
+    }
+
+    func loadNotes(in topic: Topic) throws -> [(NoteRef, NoteFile)] {
+        let dir = directory(of: topic)
+        let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])) ?? []
+        return files.filter { $0.pathExtension == "md" }.compactMap { url in
+            guard let data = try? FileIO.read(url), let file = try? NoteFile.parse(String(decoding: data, as: UTF8.self)) else { return nil }
+            return (NoteRef(topic: topic, meta: file.meta, fileURL: url), file)
+        }
+    }
+
+    func historyURL(topic: Topic, noteID: String) -> URL {
+        directory(of: topic).appendingPathComponent(".history/\(noteID).jsonl")
+    }
+
+    private func appendHistory(topic: Topic, noteID: String, entry: HistoryEntry) throws {
+        let url = historyURL(topic: topic, noteID: noteID)
+        var existing = FileManager.default.fileExists(atPath: url.path) ? try FileIO.read(url) : Data()
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        existing.append(try encoder.encode(entry))
+        existing.append(0x0A)
+        try FileIO.write(existing, to: url)
+    }
+}
+
+/// Case-, diacritic- and Turkish-insensitive comparison key ("TASARIMI" == "tasarımı").
+func searchKey(_ s: String) -> String {
+    let turkish: [Character: Character] = ["İ": "i", "I": "i", "ı": "i"]
+    return String(s.map { turkish[$0] ?? $0 })
+        .folding(options: [.diacriticInsensitive, .caseInsensitive, .widthInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+        .lowercased()
+}
