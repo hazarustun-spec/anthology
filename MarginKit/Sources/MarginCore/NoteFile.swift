@@ -22,11 +22,14 @@ public struct NoteFile: Equatable, Sendable {
     public var body: String
     /// Front-matter lines Margin does not own (e.g. `tags:` added in Obsidian). Written back verbatim.
     public var extraFrontMatter: [String]
+    /// Former titles, so Claude can still find a note by the name it used before a rename.
+    public var aliases: [String]
 
-    public init(meta: NoteMeta, body: String, extraFrontMatter: [String] = []) {
+    public init(meta: NoteMeta, body: String, extraFrontMatter: [String] = [], aliases: [String] = []) {
         self.meta = meta
         self.body = body
         self.extraFrontMatter = extraFrontMatter
+        self.aliases = aliases
     }
 
     public func serialize() -> String {
@@ -38,7 +41,7 @@ public struct NoteFile: Equatable, Sendable {
         updated: \(MarginDate.format(meta.updated))
         revision: \(meta.revision)
 
-        """ + extraFrontMatter.map { $0 + "\n" }.joined() + "---\n" + body
+        """ + (aliases.isEmpty ? "" : "aliases: \(Self.quoteList(aliases))\n") + extraFrontMatter.map { $0 + "\n" }.joined() + "---\n" + body
     }
 
     public static func parse(_ raw: String) throws -> NoteFile {
@@ -49,13 +52,16 @@ public struct NoteFile: Equatable, Sendable {
                 ?? (text.hasSuffix("\n---") ? text.range(of: "\n---", options: .backwards) : nil)
         else { throw MarginError.malformedNote("unterminated front matter") }
 
-        let ownKeys: Set<String> = ["id", "title", "created", "updated", "revision"]
+        let ownKeys: Set<String> = ["id", "title", "created", "updated", "revision", "aliases"]
         var fields: [String: String] = [:]
         var extra: [String] = []
         for line in text[afterOpen..<close.lowerBound].split(separator: "\n", omittingEmptySubsequences: false) {
             if let colon = line.firstIndex(of: ":") {
                 let key = line[..<colon].trimmingCharacters(in: .whitespaces)
-                if ownKeys.contains(key), fields[key] == nil, !line.hasPrefix(" ") {
+                let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+                // Only claim `aliases` when it is Margin's JSON list; other tools' YAML stays untouched.
+                let isOurs = key != "aliases" || (value.hasPrefix("[\"") || value == "[]") && !unquoteList(value).isEmpty || value == "[]"
+                if ownKeys.contains(key), isOurs, fields[key] == nil, !line.hasPrefix(" ") {
                     fields[key] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
                     continue
                 }
@@ -70,7 +76,8 @@ public struct NoteFile: Equatable, Sendable {
         else { throw MarginError.malformedNote("missing or invalid keys") }
 
         let meta = NoteMeta(id: id, title: unquote(rawTitle), created: created, updated: updated, revision: revision)
-        return NoteFile(meta: meta, body: String(text[close.upperBound...]), extraFrontMatter: extra)
+        let aliases = fields["aliases"].map(unquoteList) ?? []
+        return NoteFile(meta: meta, body: String(text[close.upperBound...]), extraFrontMatter: extra, aliases: aliases)
     }
 
     /// Strips a UTF-8 BOM and converts CRLF line endings to LF.
@@ -109,6 +116,15 @@ public struct NoteFile: Equatable, Sendable {
     static func quote(_ s: String) -> String {
         let data = (try? JSONSerialization.data(withJSONObject: s, options: [.fragmentsAllowed, .withoutEscapingSlashes])) ?? Data()
         return String(decoding: data, as: UTF8.self)
+    }
+
+    static func quoteList(_ items: [String]) -> String {
+        let data = (try? JSONSerialization.data(withJSONObject: items, options: [.withoutEscapingSlashes])) ?? Data("[]".utf8)
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    static func unquoteList(_ s: String) -> [String] {
+        (try? JSONSerialization.jsonObject(with: Data(s.utf8)) as? [String]) ?? []
     }
 
     static func unquote(_ s: String) -> String {

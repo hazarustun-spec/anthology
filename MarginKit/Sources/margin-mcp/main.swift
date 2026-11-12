@@ -36,7 +36,8 @@ let tools: MarginTools
 do {
     tools = MarginTools(
         store: try MarginStore(root: root), source: source,
-        defaultProjectPath: FileManager.default.currentDirectoryPath
+        defaultProjectPath: FileManager.default.currentDirectoryPath,
+        settings: MarginSettings.load()
     )
 } catch {
     log("cannot open notes folder \(root.path): \(error)")
@@ -75,7 +76,10 @@ let server = Server(
 )
 
 await server.withMethodHandler(ListTools.self) { _ in
-    .init(tools: MarginTools.toolSpecs.map { Tool(name: $0.name, description: $0.description, inputSchema: schema(for: $0)) })
+    .init(tools: tools.specs.map {
+        Tool(name: $0.name, description: $0.description, inputSchema: schema(for: $0),
+             annotations: .init(readOnlyHint: $0.readOnly, destructiveHint: $0.destructive))
+    })
 }
 
 await server.withMethodHandler(CallTool.self) { params in

@@ -4,6 +4,10 @@ public enum ChangeSource: String, Codable, Sendable {
     case claudeCode = "claude-code"
     case cowork
     case app
+    case gemini
+    case cursor
+    case vscode
+    case codex
 }
 
 public struct HistoryEntry: Codable, Equatable, Sendable {
@@ -12,6 +16,17 @@ public struct HistoryEntry: Codable, Equatable, Sendable {
     public var by: ChangeSource
     public var summary: String
     public var project: String?
+    /// Set when a change looks risky (e.g. "large-removal"); the app highlights it with Undo.
+    public var warning: String?
+
+    public init(rev: Int, at: Date, by: ChangeSource, summary: String, project: String?, warning: String? = nil) {
+        self.rev = rev
+        self.at = at
+        self.by = by
+        self.summary = summary
+        self.project = project
+        self.warning = warning
+    }
 
     /// History keeps millisecond precision so same-second changes still sort correctly.
     static let encoder: JSONEncoder = {

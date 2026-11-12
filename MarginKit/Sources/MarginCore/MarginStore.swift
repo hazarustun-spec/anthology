@@ -69,6 +69,15 @@ public final class MarginStore: @unchecked Sendable {
         return topic
     }
 
+    public func setTopicAppearance(id: String, icon: String?, color: String?) throws -> Topic {
+        try beginWrite(); defer { endWrite() }
+        var topic = try self.topic(id: id)
+        topic.icon = icon
+        topic.color = color
+        try save(topic)
+        return topic
+    }
+
     public func addSource(topicID: String, source: String) throws {
         try beginWrite(); defer { endWrite() }
         var topic = try self.topic(id: topicID)

@@ -26,6 +26,24 @@ public struct ToolSpec: Sendable {
     public var name: String
     public var description: String
     public var params: [ToolParam]
+    public var readOnly = false
+    public var destructive = false
+}
+
+/// Caps AI writes per process, so a hijacked loop can't churn through notes.
+final class RateLimiter: @unchecked Sendable {
+    private let limit: Int
+    private var stamps: [Date] = []
+    private let lock = NSLock()
+    init(limit: Int) { self.limit = limit }
+    func allow() -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        let now = Date()
+        stamps.removeAll { now.timeIntervalSince($0) > 60 }
+        guard stamps.count < limit else { return false }
+        stamps.append(now)
+        return true
+    }
 }
 
 /// Transport-independent implementation of Margin's MCP tools.
@@ -34,16 +52,33 @@ public struct MarginTools: Sendable {
     let source: ChangeSource
     /// Used when Claude omits `project_path`. Claude Code starts MCP servers in the project folder.
     let defaultProjectPath: String?
+    let settings: MarginSettings
+    let limiter: RateLimiter
+    static let writeTools: Set<String> = ["save_note", "quick_capture", "update_note", "rename_topic", "move_note", "delete_note"]
 
     /// Title of the per-topic quick-notes note, in the user's language.
     public static var quickNoteTitle: String {
         (Locale.preferredLanguages.first ?? "en").hasPrefix("tr") ? "Hızlı notlar" : "Quick notes"
     }
 
-    public init(store: MarginStore, source: ChangeSource, defaultProjectPath: String? = nil) {
+    public init(store: MarginStore, source: ChangeSource, defaultProjectPath: String? = nil,
+                settings: MarginSettings = .default, writeLimit: Int = 30) {
         self.store = store
         self.source = source
         self.defaultProjectPath = defaultProjectPath.flatMap(Self.usableProjectPath)
+        self.settings = settings
+        self.limiter = RateLimiter(limit: writeLimit)
+    }
+
+    /// Tools offered to the model under the current permissions.
+    public var specs: [ToolSpec] {
+        Self.toolSpecs.filter { spec in
+            switch spec.name {
+            case "delete_note": settings.allowDelete
+            case "move_note": settings.allowMove
+            default: true
+            }
+        }
     }
 
     /// A working directory only identifies a project if it is not `/` or the home folder.
@@ -55,15 +90,15 @@ public struct MarginTools: Sendable {
     }
 
     public static let toolSpecs: [ToolSpec] = [
-        ToolSpec(name: "list_topics", description: "List all Margin topics with their notes (id, revision, last updated) and the project folders that route to each topic.", params: []),
+        ToolSpec(name: "list_topics", description: "List all Margin topics with their notes (id, revision, last updated) and the project folders that route to each topic.", params: [], readOnly: true),
         ToolSpec(name: "get_note", description: "Read one note's Markdown and its current revision. Identify it by note_id, or by topic title + note title.", params: [
             p("note_id", "Note id from list_topics/search_notes.", required: false),
             p("topic", "Topic title (with `title`).", required: false),
             p("title", "Note title (with `topic`).", required: false),
-        ]),
+        ], readOnly: true),
         ToolSpec(name: "search_notes", description: "Full-text search across all notes (case/diacritic-insensitive). Returns matching notes with a snippet.", params: [
             p("query", "Words to search for."),
-        ]),
+        ], readOnly: true),
         ToolSpec(name: "save_note", description: "Save something to Margin. Resolves the topic from project_path (or `topic`). If note_title matches an existing note in that topic, the content is appended to it; otherwise a new note is created. To merge into an existing note cleanly, prefer get_note + update_note.", params: [
             p("content", "Markdown to save."),
             p("summary", "One-line description of the change for the note's history."),
@@ -80,16 +115,16 @@ public struct MarginTools: Sendable {
             ToolParam(name: "base_revision", type: "integer", description: "Revision returned by get_note.", required: true),
             p("content", "Full new Markdown body."),
             p("summary", "One-line description of the change for the note's history."),
-        ]),
+        ], destructive: true),
         ToolSpec(name: "rename_topic", description: "Rename a topic. Routing from its project folders keeps working.", params: [
             p("topic_id", "Topic id."), p("title", "New title."),
         ]),
         ToolSpec(name: "move_note", description: "Move a note to another topic.", params: [
             p("note_id", "Note id."), p("topic_id", "Destination topic id."),
-        ]),
+        ], destructive: true),
         ToolSpec(name: "delete_note", description: "Move a note to Margin's trash. Only when the user asks.", params: [
             p("note_id", "Note id."),
-        ]),
+        ], destructive: true),
     ]
 
     private static func p(_ name: String, _ description: String, required: Bool = true) -> ToolParam {
@@ -108,6 +143,12 @@ public struct MarginTools: Sendable {
             if key == "project_path" ? s.count > 4096 : s.count > limit {
                 return .error("Argument \(key) is too long (limit \(limit) characters).")
             }
+        }
+        if !specs.contains(where: { $0.name == name }), Self.toolSpecs.contains(where: { $0.name == name }) {
+            return .error("This action is turned off in Margin's settings. Ask the user to do it in the Margin app.")
+        }
+        if Self.writeTools.contains(name), !limiter.allow() {
+            return .error("Too many changes in a short time; Margin paused writes for a minute. Tell the user.")
         }
         do {
             if let spec = Self.toolSpecs.first(where: { $0.name == name }) {
@@ -162,7 +203,9 @@ public struct MarginTools: Sendable {
         return try topics.map { topic in
             var lines = ["\(topic.title) (topic_id=\(topic.id))" + (topic.sources.isEmpty ? "" : " — folders: \(topic.sources.joined(separator: ", "))")]
             for n in try store.listNotes(topicID: topic.id) {
-                lines.append("  • \(n.meta.title) (note_id=\(n.meta.id), revision=\(n.meta.revision), updated \(MarginDate.format(n.meta.updated)))")
+                let aliases = (try? store.findNote(id: n.meta.id).1.aliases) ?? []
+                let formerly = aliases.isEmpty ? "" : ", formerly " + aliases.map { "\"\($0)\"" }.joined(separator: ", ")
+                lines.append("  • \(n.meta.title) (note_id=\(n.meta.id), revision=\(n.meta.revision), updated \(MarginDate.format(n.meta.updated))\(formerly))")
             }
             return lines.joined(separator: "\n")
         }.joined(separator: "\n")
@@ -223,7 +266,9 @@ public struct MarginTools: Sendable {
             id: str(args, "note_id"), baseRevision: int(args, "base_revision"),
             body: str(args, "content"), by: source, summary: str(args, "summary"), project: nil
         )
+        let flagged = (try? store.history(noteID: ref.meta.id).last?.warning) == "large-removal"
         return "Updated \(ref.topic.title) › \(ref.meta.title) (revision=\(ref.meta.revision))."
+            + (flagged ? " This removed most of the note; Margin kept the previous version and the user can undo it. Mention this to the user." : "")
     }
 
     static func title(from content: String) -> String {

@@ -6,12 +6,26 @@ public struct MarginSettings: Codable, Equatable, Sendable {
     public var smartPrefix: String
     /// `//m! <text>`: saved verbatim to the folder's quick-notes note; with the hook it never reaches Claude.
     public var instantPrefix: String
+    /// Whether AI tools may move notes to the trash (off by default: a hijacked model can't delete).
+    public var allowDelete: Bool
+    /// Whether AI tools may move notes between topics.
+    public var allowMove: Bool
 
     public static let `default` = MarginSettings(smartPrefix: "//m", instantPrefix: "//m!")
 
-    public init(smartPrefix: String, instantPrefix: String) {
+    public init(smartPrefix: String, instantPrefix: String, allowDelete: Bool = false, allowMove: Bool = true) {
         self.smartPrefix = smartPrefix
         self.instantPrefix = instantPrefix
+        self.allowDelete = allowDelete
+        self.allowMove = allowMove
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        smartPrefix = try c.decodeIfPresent(String.self, forKey: .smartPrefix) ?? Self.default.smartPrefix
+        instantPrefix = try c.decodeIfPresent(String.self, forKey: .instantPrefix) ?? Self.default.instantPrefix
+        allowDelete = try c.decodeIfPresent(Bool.self, forKey: .allowDelete) ?? false
+        allowMove = try c.decodeIfPresent(Bool.self, forKey: .allowMove) ?? true
     }
 
     public static var defaultURL: URL {
@@ -33,7 +47,9 @@ public struct MarginSettings: Codable, Equatable, Sendable {
     /// Prefixes must be non-empty, without whitespace, at most 8 characters, and different from each other.
     public func sanitized() -> MarginSettings {
         func ok(_ p: String) -> Bool { !p.isEmpty && p.count <= 8 && !p.contains(where: \.isWhitespace) }
-        guard ok(smartPrefix), ok(instantPrefix), smartPrefix != instantPrefix else { return .default }
+        guard ok(smartPrefix), ok(instantPrefix), smartPrefix != instantPrefix else {
+            return MarginSettings(smartPrefix: Self.default.smartPrefix, instantPrefix: Self.default.instantPrefix, allowDelete: allowDelete, allowMove: allowMove)
+        }
         return self
     }
 
@@ -65,6 +81,13 @@ extension MarginStore {
     public func quickCapture(_ text: String, projectPath: String?, by: ChangeSource, noteTitle: String) throws -> NoteRef {
         try beginWrite(); defer { endWrite() }
         let topic = try resolveTopic(projectPath: projectPath, explicitTitle: nil)
+        return try quickCapture(text, topicID: topic.id, by: by, noteTitle: noteTitle, project: projectPath)
+    }
+
+    @discardableResult
+    public func quickCapture(_ text: String, topicID: String, by: ChangeSource, noteTitle: String, project projectPath: String? = nil) throws -> NoteRef {
+        try beginWrite(); defer { endWrite() }
+        let topic = try self.topic(id: topicID)
         let stamp = Date().formatted(.dateTime.year().month(.twoDigits).day(.twoDigits).hour(.twoDigits(amPM: .omitted)).minute(.twoDigits))
         let line = "- \(stamp) · \(text.replacingOccurrences(of: "\n", with: " "))"
         let summary = String(text.prefix(60))

@@ -18,33 +18,33 @@ public enum MCPConfigFile {
         }
     }
 
-    public static func status(at url: URL, binary: String) -> Status {
+    public static func status(at url: URL, binary: String, key: String = "mcpServers") -> Status {
         guard FileManager.default.fileExists(atPath: url.path) else { return .notConnected }
         guard let root = try? read(url) else { return .unreadable }
-        guard let entry = (root["mcpServers"] as? [String: Any])?[serverName] as? [String: Any] else { return .notConnected }
+        guard let entry = (root[key] as? [String: Any])?[serverName] as? [String: Any] else { return .notConnected }
         return entry["command"] as? String == binary ? .connected : .differentBinary
     }
 
     /// Adds or replaces the `margin` server. Backs the file up first; refuses to touch malformed JSON.
-    public static func install(at link: URL, entry: [String: Any]) throws {
+    public static func install(at link: URL, entry: [String: Any], key: String = "mcpServers") throws {
         let url = link.resolvingSymlinksInPath()
         var root = FileManager.default.fileExists(atPath: url.path) ? try read(url) : [:]
-        if let existing = root["mcpServers"], !(existing is [String: Any]) { throw ConfigError.malformed(url.path) }
+        if let existing = root[key], !(existing is [String: Any]) { throw ConfigError.malformed(url.path) }
         try backup(url)
-        var servers = root["mcpServers"] as? [String: Any] ?? [:]
+        var servers = root[key] as? [String: Any] ?? [:]
         servers[serverName] = entry
-        root["mcpServers"] = servers
+        root[key] = servers
         try write(root, to: url)
     }
 
-    public static func remove(at link: URL) throws {
+    public static func remove(at link: URL, key: String = "mcpServers") throws {
         let url = link.resolvingSymlinksInPath()
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         var root = try read(url)
-        guard var servers = root["mcpServers"] as? [String: Any], servers[serverName] != nil else { return }
+        guard var servers = root[key] as? [String: Any], servers[serverName] != nil else { return }
         try backup(url)
         servers[serverName] = nil
-        root["mcpServers"] = servers
+        root[key] = servers
         try write(root, to: url)
     }
 
@@ -95,5 +95,68 @@ public enum ClaudePaths {
             }
         }
         return nil
+    }
+}
+
+
+/// Minimal, conservative editor for Codex's `~/.codex/config.toml`: owns only the `[mcp_servers.margin]` table.
+public enum CodexConfig {
+    static let header = "[mcp_servers.margin]"
+
+    public static var defaultURL: URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/config.toml")
+    }
+
+    static func tomlString(_ s: String) -> String {
+        "\"" + s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+    }
+
+    /// Splits the file into (before, ourTable, after) by the `[mcp_servers.margin]` header.
+    static func split(_ text: String) -> (String, String?, String) {
+        var lines = text.components(separatedBy: "\n")
+        guard let start = lines.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces) == header }) else { return (text, nil, "") }
+        var end = start + 1
+        while end < lines.count, !lines[end].trimmingCharacters(in: .whitespaces).hasPrefix("[") { end += 1 }
+        let before = lines[..<start].joined(separator: "\n")
+        let table = lines[start..<end].joined(separator: "\n")
+        let after = lines[end...].joined(separator: "\n")
+        lines.removeAll()
+        return (before, table, after)
+    }
+
+    public static func status(at url: URL = defaultURL, command: String) -> MCPConfigFile.Status {
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return .notConnected }
+        guard let table = split(text).1 else { return .notConnected }
+        return table.contains("command = \(tomlString(command))") ? .connected : .differentBinary
+    }
+
+    public static func install(at link: URL = defaultURL, command: String, args: [String]) throws {
+        let url = link.resolvingSymlinksInPath()
+        let text = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+        try MCPConfigFile.backup(url)
+        let table = header + "\ncommand = \(tomlString(command))\nargs = [\(args.map(tomlString).joined(separator: ", "))]\n"
+        let (before, existing, after) = split(text)
+        let result: String
+        if existing != nil {
+            result = before + (before.isEmpty ? "" : "\n") + table + (after.isEmpty ? "" : "\n" + after)
+        } else {
+            let base = text.isEmpty ? "" : (text.hasSuffix("\n") ? text : text + "\n") + "\n"
+            result = base + table
+        }
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try result.write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    public static func remove(at link: URL = defaultURL) throws {
+        let url = link.resolvingSymlinksInPath()
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return }
+        let (before, existing, after) = split(text)
+        guard existing != nil else { return }
+        try MCPConfigFile.backup(url)
+        var result = before
+        if !after.isEmpty { result += (result.isEmpty ? "" : "\n") + after }
+        while result.hasSuffix("\n\n") { result.removeLast() }
+        if !result.isEmpty, !result.hasSuffix("\n") { result += "\n" }
+        try result.write(to: url, atomically: true, encoding: .utf8)
     }
 }

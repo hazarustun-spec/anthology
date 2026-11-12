@@ -20,7 +20,9 @@ extension MarginStore {
     public func findNote(topicID: String, title: String) throws -> (NoteRef, NoteFile)? {
         lock.lock(); defer { lock.unlock() }
         let wanted = searchKey(title)
-        return try loadNotes(in: topic(id: topicID)).first { searchKey($0.0.meta.title) == wanted }
+        let notes = try loadNotes(in: topic(id: topicID))
+        return notes.first { searchKey($0.0.meta.title) == wanted }
+            ?? notes.first { $0.1.aliases.contains { searchKey($0) == wanted } }
     }
 
     public func history(noteID: String) throws -> [HistoryEntry] {
@@ -90,6 +92,25 @@ extension MarginStore {
         return try write(ref: ref, file: file, newBody: body, by: by, summary: summary, project: project)
     }
 
+    /// Renames a note. The id and file stay the same; the old title is kept as an alias for Claude.
+    @discardableResult
+    public func renameNote(id: String, title: String, by: ChangeSource) throws -> NoteRef {
+        try beginWrite(); defer { endWrite() }
+        let (ref, file) = try findNote(id: id)
+        let newTitle = singleLine(title)
+        guard !newTitle.isEmpty, newTitle != file.meta.title else { return ref }
+        var updated = file
+        if !updated.aliases.contains(file.meta.title) { updated.aliases.append(file.meta.title) }
+        updated.aliases.removeAll { $0 == newTitle }
+        updated.meta.title = newTitle
+        updated.meta.revision += 1
+        updated.meta.updated = MarginDate.now()
+        try FileIO.write(Data(updated.serialize().utf8), to: ref.fileURL)
+        try appendHistory(topic: ref.topic, noteID: id, entry: HistoryEntry(
+            rev: updated.meta.revision, at: Date(), by: by, summary: "Renamed from \"\(file.meta.title)\"", project: nil))
+        return NoteRef(topic: ref.topic, meta: updated.meta, fileURL: ref.fileURL)
+    }
+
     public func deleteNote(id: String) throws {
         try beginWrite(); defer { endWrite() }
         let (ref, _) = try findNote(id: id)
@@ -137,9 +158,10 @@ extension MarginStore {
         updated.meta.revision += 1
         updated.meta.updated = MarginDate.now()
         try FileIO.write(Data(updated.serialize().utf8), to: ref.fileURL)
+        let warning = by != .app && Self.isLargeRemoval(old: file.body, new: newBody) ? "large-removal" : nil
         try appendHistory(
             topic: ref.topic, noteID: updated.meta.id,
-            entry: HistoryEntry(rev: updated.meta.revision, at: Date(), by: by, summary: summary, project: project)
+            entry: HistoryEntry(rev: updated.meta.revision, at: Date(), by: by, summary: summary, project: project, warning: warning)
         )
         return NoteRef(topic: ref.topic, meta: updated.meta, fileURL: ref.fileURL)
     }
@@ -172,6 +194,11 @@ extension MarginStore {
                 return nil
             }
         }
+    }
+
+    /// An AI edit that drops more than half of a non-trivial note is flagged (it stays undoable).
+    static func isLargeRemoval(old: String, new: String) -> Bool {
+        old.count >= 120 && Double(new.count) < Double(old.count) * 0.5
     }
 
     func versionURL(topic: Topic, noteID: String, revision: Int) -> URL {
