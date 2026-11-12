@@ -1,3 +1,4 @@
+#if os(macOS)
 import Foundation
 
 /// Edits the `mcpServers` section of a Claude config file (Claude Desktop's
@@ -75,7 +76,7 @@ public enum MCPConfigFile {
 
 /// Where Claude's config files and Margin's installed helper live.
 public enum ClaudePaths {
-    static var home: URL { FileManager.default.homeDirectoryForCurrentUser }
+    static var home: URL { URL(fileURLWithPath: NSHomeDirectory()) }
     public static var desktopConfig: URL { home.appendingPathComponent("Library/Application Support/Claude/claude_desktop_config.json") }
     public static var claudeCodeConfig: URL { home.appendingPathComponent(".claude.json") }
     public static var installedHelper: URL { home.appendingPathComponent("Library/Application Support/Margin/bin/margin-mcp") }
@@ -104,7 +105,7 @@ public enum CodexConfig {
     static let header = "[mcp_servers.margin]"
 
     public static var defaultURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex/config.toml")
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".codex/config.toml")
     }
 
     static func tomlString(_ s: String) -> String {
@@ -160,3 +161,5 @@ public enum CodexConfig {
         try result.write(to: url, atomically: true, encoding: .utf8)
     }
 }
+
+#endif

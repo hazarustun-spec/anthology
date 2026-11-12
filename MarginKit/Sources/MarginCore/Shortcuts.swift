@@ -29,7 +29,7 @@ public struct MarginSettings: Codable, Equatable, Sendable {
     }
 
     public static var defaultURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Margin/settings.json")
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Margin/settings.json")
     }
 
     public static func load(from url: URL = defaultURL) -> MarginSettings {
@@ -139,12 +139,13 @@ public struct HookHandler: Sendable {
     }
 }
 
+#if os(macOS)
 /// Adds/removes Margin's `UserPromptSubmit` hook in Claude Code's `~/.claude/settings.json`, leaving other hooks alone.
 public enum ClaudeHookConfig {
     static let event = "UserPromptSubmit"
 
     public static var userSettings: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".claude/settings.json")
     }
 
     static func isOurs(_ group: [String: Any]) -> Bool {
@@ -180,3 +181,5 @@ public enum ClaudeHookConfig {
         try MCPConfigFile.write(root, to: url)
     }
 }
+
+#endif
