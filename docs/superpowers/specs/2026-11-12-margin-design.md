@@ -217,6 +217,13 @@ without consent; write in the language the user is speaking.
 4. A week later in Claude Code: "Skill listeme göre bu haftaya plan yap" →
    Claude calls `search_notes("skill")` and reads the note.
 
+## 7.1 Visual direction (Hazar's pick, 2026-11-12): "Ink"
+- Default look is dark: warm near-black canvas (#1F1D1A), darker sidebar (#191714), warm off-white
+  text (#ECE7DE), **amber accent (#E0A458)**, serif note bodies and titles, sans UI chrome.
+- Light mode is the same system inverted: warm paper (#FBF8F2) with a deeper amber accent.
+- Fresh changes from Claude: soft amber wash on the note row, a small "new" tag on changed lines,
+  and a source badge ("Cowork · Added SQL and system design").
+
 ## 8. Left to the builder
 
 Exact visual design (within §6.5 direction; mockups shown to Hazar before
