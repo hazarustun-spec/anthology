@@ -52,7 +52,7 @@ extension MarginStore {
 
     @discardableResult
     public func createNote(topicID: String, title: String, body: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let topic = try topic(id: topicID)
         let dir = directory(of: topic)
         let base = slugify(title)
@@ -72,7 +72,7 @@ extension MarginStore {
 
     @discardableResult
     public func appendToNote(id: String, text: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let (ref, file) = try findNote(id: id)
         let body = file.body.isEmpty ? text : file.body + "\n\n" + text
         return try write(ref: ref, file: file, newBody: body, by: by, summary: summary, project: project)
@@ -81,7 +81,7 @@ extension MarginStore {
     /// Replaces the body. Rejected with `.staleRevision` when the note changed since `baseRevision` was read.
     @discardableResult
     public func updateNote(id: String, baseRevision: Int, body: String, by: ChangeSource, summary: String, project: String?) throws -> NoteRef {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let (ref, file) = try findNote(id: id)
         guard file.meta.revision == baseRevision else {
             throw MarginError.staleRevision(expected: baseRevision, actual: file.meta.revision)
@@ -90,7 +90,7 @@ extension MarginStore {
     }
 
     public func deleteNote(id: String) throws {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let (ref, _) = try findNote(id: id)
         let trashDir = root.appendingPathComponent(".trash/\(ref.topic.directoryName)", isDirectory: true)
         var dest = trashDir.appendingPathComponent(ref.fileURL.lastPathComponent)
@@ -102,7 +102,7 @@ extension MarginStore {
 
     @discardableResult
     public func moveNote(id: String, toTopicID: String) throws -> NoteRef {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let (ref, _) = try findNote(id: id)
         let target = try topic(id: toTopicID)
         guard target.id != ref.topic.id else { return ref }

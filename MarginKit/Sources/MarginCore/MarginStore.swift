@@ -4,6 +4,8 @@ import Foundation
 public final class MarginStore: @unchecked Sendable {
     public let root: URL
     let lock = NSRecursiveLock()
+    private var writeDepth = 0
+    private var lockFD: Int32 = -1
 
     static let topicFile = "_topic.json"
     static let reservedDirectories: Set<String> = [".trash", ".history"]
@@ -39,7 +41,7 @@ public final class MarginStore: @unchecked Sendable {
 
     @discardableResult
     public func createTopic(title: String, source: String?) throws -> Topic {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let existing = try listTopics()
         var dirName: String
         repeat {
@@ -58,7 +60,7 @@ public final class MarginStore: @unchecked Sendable {
     }
 
     public func renameTopic(id: String, title: String) throws -> Topic {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         var topic = try self.topic(id: id)
         topic.title = title
         try save(topic)
@@ -66,7 +68,7 @@ public final class MarginStore: @unchecked Sendable {
     }
 
     public func addSource(topicID: String, source: String) throws {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         var topic = try self.topic(id: topicID)
         guard !topic.sources.contains(source) else { return }
         topic.sources.append(source)
@@ -75,7 +77,7 @@ public final class MarginStore: @unchecked Sendable {
 
     /// Finds or creates the topic for a save. See spec §6.2 for the lookup order.
     public func resolveTopic(projectPath: String?, explicitTitle: String?) throws -> Topic {
-        lock.lock(); defer { lock.unlock() }
+        beginWrite(); defer { endWrite() }
         let topics = try listTopics()
 
         if let title = explicitTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
@@ -103,6 +105,29 @@ public final class MarginStore: @unchecked Sendable {
         if byBase.count > 1 { throw MarginError.ambiguousTopic(byBase.map(\.title)) }
 
         return try createTopic(title: prettifyFolderName(base), source: path)
+    }
+
+    // MARK: Cross-process write lock
+
+    /// Serializes mutations across processes (every Claude session runs its own margin-mcp, plus the app).
+    /// Reentrant within this process. Pair with `endWrite()` via `defer`.
+    func beginWrite() {
+        lock.lock()
+        writeDepth += 1
+        guard writeDepth == 1 else { return }
+        let path = root.appendingPathComponent(".margin.lock").path
+        lockFD = open(path, O_CREAT | O_RDWR, 0o644)
+        if lockFD >= 0 { while flock(lockFD, LOCK_EX) != 0 && errno == EINTR {} }
+    }
+
+    func endWrite() {
+        writeDepth -= 1
+        if writeDepth == 0, lockFD >= 0 {
+            flock(lockFD, LOCK_UN)
+            close(lockFD)
+            lockFD = -1
+        }
+        lock.unlock()
     }
 
     // MARK: Helpers
