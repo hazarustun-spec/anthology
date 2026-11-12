@@ -1,0 +1,30 @@
+name: Margin
+options:
+  bundleIdPrefix: com.marginnotes
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+packages:
+  MarginKit:
+    path: ../MarginKit
+targets:
+  Margin:
+    type: application
+    platform: macOS
+    sources: [Margin]
+    dependencies:
+      - package: MarginKit
+        product: MarginCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.marginnotes.Margin
+        PRODUCT_NAME: Margin
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Margin
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        CODE_SIGN_ENTITLEMENTS: Margin/Margin.entitlements
+        CODE_SIGN_IDENTITY: "-"
+        ENABLE_HARDENED_RUNTIME: YES
