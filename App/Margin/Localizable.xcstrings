@@ -391,6 +391,66 @@
           }
         }
       }
+    },
+    "Chat shortcuts": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sohbet kısayolları"
+          }
+        }
+      }
+    },
+    "Smart save": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akıllı kayıt"
+          }
+        }
+      }
+    },
+    "Instant capture": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anında kayıt"
+          }
+        }
+      }
+    },
+    "Claude files it into the right note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude doğru nota yerleştirir"
+          }
+        }
+      }
+    },
+    "Saved word for word to Quick notes, never sent to Claude": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı notlar'a olduğu gibi kaydedilir, Claude'a gitmez"
+          }
+        }
+      }
+    },
+    "Example: %@ add SQL to my skills · %@ call Ali tomorrow. New conversations pick up changes.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Örnek: %1$@ SQL'i skill listeme ekle · %2$@ yarın Ali'yi ara. Değişiklikler yeni sohbetlerde geçerli olur."
+          }
+        }
+      }
     }
   }
 }

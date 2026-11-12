@@ -11,7 +11,7 @@ struct ToolsTests {
     @Test func toolSpecsComplete() {
         #expect(Set(MarginTools.toolSpecs.map(\.name)) == [
             "list_topics", "get_note", "search_notes", "save_note",
-            "update_note", "rename_topic", "move_note", "delete_note",
+            "update_note", "rename_topic", "move_note", "delete_note", "quick_capture",
         ])
     }
 

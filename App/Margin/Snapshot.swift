@@ -24,7 +24,7 @@ enum Snapshot {
         window.appearance = NSAppearance(named: args.contains("--light") ? .aqua : .darkAqua)
         if let i = args.firstIndex(of: "--note"), i + 1 < args.count { library.open(noteID: args[i + 1]) }
         if args.contains("--settings") {
-            window.setContentSize(NSSize(width: 520, height: 330))
+            window.setContentSize(NSSize(width: 520, height: 520))
             window.contentView = NSHostingView(rootView: SettingsView().environment(library))
         } else {
             window.contentView = NSHostingView(rootView: LibraryView(snapshotLayout: true).environment(library))

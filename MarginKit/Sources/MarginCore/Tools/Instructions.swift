@@ -1,6 +1,21 @@
 extension MarginTools {
-    /// Sent to Claude as the MCP server `instructions`. Encodes spec §6.3 and the consent rule (§6.4.1).
-    public static let serverInstructions = """
+    public static var serverInstructions: String { instructions(settings: .default) }
+
+    /// Sent to Claude as the MCP server `instructions`. Encodes spec §6.3, the consent rule (§6.4.1)
+    /// and the user's chat shortcuts.
+    public static func instructions(settings: MarginSettings) -> String {
+        baseInstructions + """
+
+        Shortcuts
+        - A message starting with "\(settings.smartPrefix) " is an explicit save request: save the rest of the \
+        message to Margin right away without asking, filing it into the best existing note (or a new one), \
+        then reply with one short line saying where it went.
+        - A message starting with "\(settings.instantPrefix) " means: call quick_capture with the rest of the \
+        message verbatim (no rewriting, no merging), then reply with one short line.
+        """
+    }
+
+    static let baseInstructions = """
     Margin is the user's personal notes app (Mac + iPhone). Notes are organized as Topic → Notes. \
     A topic normally corresponds to the project folder the user is working in. Each note is a living \
     document that you keep tidy and up to date.

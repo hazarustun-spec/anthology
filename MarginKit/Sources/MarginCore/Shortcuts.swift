@@ -1,0 +1,157 @@
+import Foundation
+
+/// User-configurable chat shortcuts, shared by the app, margin-mcp and the Claude Code hook.
+public struct MarginSettings: Codable, Equatable, Sendable {
+    /// `//m <text>`: Claude files it into the right note, no confirmation.
+    public var smartPrefix: String
+    /// `//m! <text>`: saved verbatim to the folder's quick-notes note; with the hook it never reaches Claude.
+    public var instantPrefix: String
+
+    public static let `default` = MarginSettings(smartPrefix: "//m", instantPrefix: "//m!")
+
+    public init(smartPrefix: String, instantPrefix: String) {
+        self.smartPrefix = smartPrefix
+        self.instantPrefix = instantPrefix
+    }
+
+    public static var defaultURL: URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Margin/settings.json")
+    }
+
+    public static func load(from url: URL = defaultURL) -> MarginSettings {
+        guard let data = try? Data(contentsOf: url), let s = try? JSONDecoder().decode(MarginSettings.self, from: data) else { return .default }
+        return s.sanitized()
+    }
+
+    public func save(to url: URL = defaultURL) throws {
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let e = JSONEncoder()
+        e.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        try e.encode(sanitized()).write(to: url, options: .atomic)
+    }
+
+    /// Prefixes must be non-empty, without whitespace, at most 8 characters, and different from each other.
+    public func sanitized() -> MarginSettings {
+        func ok(_ p: String) -> Bool { !p.isEmpty && p.count <= 8 && !p.contains(where: \.isWhitespace) }
+        guard ok(smartPrefix), ok(instantPrefix), smartPrefix != instantPrefix else { return .default }
+        return self
+    }
+
+    public enum PromptKind: Equatable, Sendable {
+        case none
+        case smart(String)
+        case instant(String)
+    }
+
+    /// Classifies a chat message. The prefix must be followed by whitespace and some text.
+    public func classify(_ prompt: String) -> PromptKind {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Check the longer prefix first so "//m!" is not read as "//m" + "!…".
+        let ordered: [(String, (String) -> PromptKind)] = [(instantPrefix, { .instant($0) }), (smartPrefix, { .smart($0) })]
+            .sorted { $0.0.count > $1.0.count }
+        for (prefix, make) in ordered where trimmed.hasPrefix(prefix) {
+            let rest = trimmed.dropFirst(prefix.count)
+            guard let first = rest.first, first.isWhitespace else { continue }
+            let text = rest.trimmingCharacters(in: .whitespacesAndNewlines)
+            return text.isEmpty ? .none : make(text)
+        }
+        return .none
+    }
+}
+
+extension MarginStore {
+    /// Appends a timestamped line to the quick-notes note of the folder's topic (created on first use).
+    @discardableResult
+    public func quickCapture(_ text: String, projectPath: String?, by: ChangeSource, noteTitle: String) throws -> NoteRef {
+        beginWrite(); defer { endWrite() }
+        let topic = try resolveTopic(projectPath: projectPath, explicitTitle: nil)
+        let stamp = Date().formatted(.dateTime.year().month(.twoDigits).day(.twoDigits).hour(.twoDigits(amPM: .omitted)).minute(.twoDigits))
+        let line = "- \(stamp) · \(text.replacingOccurrences(of: "\n", with: " "))"
+        let summary = String(text.prefix(60))
+        if let (ref, file) = try findNote(topicID: topic.id, title: noteTitle) {
+            let body = file.body.isEmpty || file.body.hasSuffix("\n") ? file.body + line : file.body + "\n" + line
+            return try updateNote(id: ref.meta.id, baseRevision: ref.meta.revision, body: body, by: by, summary: summary, project: projectPath)
+        }
+        return try createNote(topicID: topic.id, title: noteTitle, body: line, by: by, summary: summary, project: projectPath)
+    }
+}
+
+/// Claude Code `UserPromptSubmit` hook: instant captures never reach the model; smart ones get a nudge.
+public struct HookHandler: Sendable {
+    let store: MarginStore
+    let settings: MarginSettings
+    let quickNoteTitle: String
+
+    public init(store: MarginStore, settings: MarginSettings, quickNoteTitle: String) {
+        self.store = store
+        self.settings = settings
+        self.quickNoteTitle = quickNoteTitle
+    }
+
+    /// Returns the hook's JSON output, or nil to let the prompt through untouched.
+    public func handle(_ input: Data) -> Data? {
+        guard let object = try? JSONSerialization.jsonObject(with: input) as? [String: Any],
+              let prompt = object["prompt"] as? String else { return nil }
+        let cwd = (object["cwd"] as? String).flatMap(MarginTools.usableProjectPath)
+        switch settings.classify(prompt) {
+        case .none:
+            return nil
+        case .instant(let text):
+            do {
+                let ref = try store.quickCapture(text, projectPath: cwd, by: .claudeCode, noteTitle: quickNoteTitle)
+                return json(["decision": "block", "reason": "✓ Margin: \(ref.topic.title) › \(ref.meta.title)"])
+            } catch {
+                return json(["decision": "block", "reason": "Margin couldn't save this: \(error.localizedDescription)"])
+            }
+        case .smart:
+            let context = "The user started this message with the Margin shortcut \(settings.smartPrefix). "
+                + "Save the rest of the message to Margin now, without asking for confirmation: pick or update the right note "
+                + "(project_path: \(cwd ?? "unknown")), then reply with one short line saying where it went."
+            return json(["hookSpecificOutput": ["hookEventName": "UserPromptSubmit", "additionalContext": context]])
+        }
+    }
+
+    private func json(_ object: [String: Any]) -> Data? {
+        try? JSONSerialization.data(withJSONObject: object, options: [.withoutEscapingSlashes])
+    }
+}
+
+/// Adds/removes Margin's `UserPromptSubmit` hook in Claude Code's `~/.claude/settings.json`, leaving other hooks alone.
+public enum ClaudeHookConfig {
+    static let event = "UserPromptSubmit"
+
+    public static var userSettings: URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
+    }
+
+    static func isOurs(_ group: [String: Any]) -> Bool {
+        ((group["hooks"] as? [[String: Any]]) ?? []).contains { ($0["command"] as? String)?.hasSuffix("margin-mcp\" hook") == true || ($0["command"] as? String)?.hasSuffix("margin-mcp hook") == true }
+    }
+
+    public static func isInstalled(at url: URL = userSettings, command: String) -> Bool {
+        guard let root = try? MCPConfigFile.read(url),
+              let groups = (root["hooks"] as? [String: Any])?[event] as? [[String: Any]] else { return false }
+        return groups.contains { (($0["hooks"] as? [[String: Any]]) ?? []).contains { $0["command"] as? String == command } }
+    }
+
+    public static func install(at url: URL = userSettings, command: String) throws {
+        var root = FileManager.default.fileExists(atPath: url.path) ? try MCPConfigFile.read(url) : [:]
+        try MCPConfigFile.backup(url)
+        var hooks = root["hooks"] as? [String: Any] ?? [:]
+        var groups = (hooks[event] as? [[String: Any]] ?? []).filter { !isOurs($0) }
+        groups.append(["hooks": [["type": "command", "command": command, "timeout": 10]]])
+        hooks[event] = groups
+        root["hooks"] = hooks
+        try MCPConfigFile.write(root, to: url)
+    }
+
+    public static func remove(at url: URL = userSettings) throws {
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        var root = try MCPConfigFile.read(url)
+        guard var hooks = root["hooks"] as? [String: Any], let groups = hooks[event] as? [[String: Any]] else { return }
+        try MCPConfigFile.backup(url)
+        hooks[event] = groups.filter { !isOurs($0) }
+        root["hooks"] = hooks
+        try MCPConfigFile.write(root, to: url)
+    }
+}

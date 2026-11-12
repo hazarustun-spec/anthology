@@ -29,6 +29,7 @@ struct SettingsView: View {
                 Text("Then just say \"save this to Margin\" in any conversation.")
                     .font(.callout).foregroundStyle(.secondary)
             }
+            ShortcutSection()
             Section("Appearance") {
                 Picker("Theme", selection: $appearance) {
                     ForEach(AppearanceChoice.allCases) { Text($0.label).tag($0) }
@@ -76,5 +77,40 @@ private struct ConnectionRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+private struct ShortcutSection: View {
+    @State private var settings = MarginSettings.load()
+    @State private var saved = false
+
+    var body: some View {
+        Section {
+            LabeledContent {
+                TextField("", text: $settings.smartPrefix).frame(width: 90).font(.system(.body, design: .monospaced))
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Smart save")
+                    Text("Claude files it into the right note").font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            }
+            LabeledContent {
+                TextField("", text: $settings.instantPrefix).frame(width: 90).font(.system(.body, design: .monospaced))
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Instant capture")
+                    Text("Saved word for word to Quick notes, never sent to Claude").font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Chat shortcuts")
+        } footer: {
+            Text("Example: \(settings.smartPrefix) add SQL to my skills · \(settings.instantPrefix) call Ali tomorrow. New conversations pick up changes.")
+                .font(.callout).foregroundStyle(.secondary)
+        }
+        .onChange(of: settings) { _, new in
+            let clean = new.sanitized()
+            if clean == new { try? clean.save() }
+        }
     }
 }

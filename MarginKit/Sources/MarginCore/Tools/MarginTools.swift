@@ -30,6 +30,11 @@ public struct MarginTools: Sendable {
     /// Used when Claude omits `project_path`. Claude Code starts MCP servers in the project folder.
     let defaultProjectPath: String?
 
+    /// Title of the per-topic quick-notes note, in the user's language.
+    public static var quickNoteTitle: String {
+        (Locale.preferredLanguages.first ?? "en").hasPrefix("tr") ? "Hızlı notlar" : "Quick notes"
+    }
+
     public init(store: MarginStore, source: ChangeSource, defaultProjectPath: String? = nil) {
         self.store = store
         self.source = source
@@ -59,6 +64,10 @@ public struct MarginTools: Sendable {
             p("project_path", "Absolute path of the current project/working folder.", required: false),
             p("topic", "Explicit topic title; overrides project_path routing.", required: false),
             p("note_title", "Title of the note to create or append to. Defaults to the content's first line.", required: false),
+        ]),
+        ToolSpec(name: "quick_capture", description: "Append one timestamped line, verbatim, to the quick-notes note of the current folder's topic. Use for the instant-capture shortcut.", params: [
+            p("text", "Text to capture, unchanged."),
+            p("project_path", "Absolute path of the current project/working folder.", required: false),
         ]),
         ToolSpec(name: "update_note", description: "Replace a note's Markdown with a merged, updated version. base_revision must be the revision you read with get_note; if the note changed since, the call fails and you must re-read and merge again.", params: [
             p("note_id", "Note id."),
@@ -95,6 +104,9 @@ public struct MarginTools: Sendable {
             case "search_notes": return .ok(try searchNotes(args))
             case "save_note": return .ok(try saveNote(args))
             case "update_note": return .ok(try updateNote(args))
+            case "quick_capture":
+                let ref = try store.quickCapture(str(args, "text"), projectPath: optStr(args, "project_path") ?? defaultProjectPath, by: source, noteTitle: Self.quickNoteTitle)
+                return .ok("Captured in \(ref.topic.title) › \(ref.meta.title).")
             case "rename_topic":
                 let t = try store.renameTopic(id: str(args, "topic_id"), title: str(args, "title"))
                 return .ok("Renamed topic to \(t.title).")

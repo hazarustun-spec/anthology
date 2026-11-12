@@ -10,6 +10,15 @@ func log(_ message: String) {
     FileHandle.standardError.write(Data("[margin-mcp] \(message)\n".utf8))
 }
 
+// `margin-mcp hook`: Claude Code UserPromptSubmit hook (reads the event JSON on stdin).
+if CommandLine.arguments.dropFirst().first == "hook" {
+    let input = FileHandle.standardInput.readDataToEndOfFile()
+    guard let store = try? MarginStore(root: MarginPaths.defaultRoot()) else { exit(0) }
+    let handler = HookHandler(store: store, settings: MarginSettings.load(), quickNoteTitle: MarginTools.quickNoteTitle)
+    if let output = handler.handle(input) { FileHandle.standardOutput.write(output) }
+    exit(0)
+}
+
 var source = ChangeSource.claudeCode
 var env = ProcessInfo.processInfo.environment
 var argv = CommandLine.arguments.dropFirst().makeIterator()
@@ -61,7 +70,7 @@ let server = Server(
     name: "margin",
     version: MarginCore.version,
     title: "Margin — notes for Claude",
-    instructions: MarginTools.serverInstructions,
+    instructions: MarginTools.instructions(settings: MarginSettings.load()),
     capabilities: .init(tools: .init(listChanged: false))
 )
 

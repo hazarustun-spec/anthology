@@ -19,8 +19,13 @@ final class ClaudeConnection {
 
     init() { refresh() }
 
+    var hookCommand: String { "\"\(helperPath)\" hook" }
+
     func refresh() {
-        status[.claudeCode] = MCPConfigFile.status(at: ClaudePaths.claudeCodeConfig, binary: helperPath)
+        var code = MCPConfigFile.status(at: ClaudePaths.claudeCodeConfig, binary: helperPath)
+        // The shortcut hook is part of the Claude Code connection; offer "Update" when it is missing.
+        if code == .connected, !ClaudeHookConfig.isInstalled(command: hookCommand) { code = .differentBinary }
+        status[.claudeCode] = code
         status[.claudeDesktop] = MCPConfigFile.status(at: ClaudePaths.desktopConfig, binary: helperPath)
     }
 
@@ -31,7 +36,9 @@ final class ClaudeConnection {
             do {
                 try installHelper()
                 switch client {
-                case .claudeCode: try await connectClaudeCode()
+                case .claudeCode:
+                    try await connectClaudeCode()
+                    try ClaudeHookConfig.install(command: hookCommand)
                 case .claudeDesktop: try await connectClaudeDesktop()
                 }
             } catch {
@@ -45,7 +52,9 @@ final class ClaudeConnection {
     func disconnect(_ client: Client) {
         do {
             switch client {
-            case .claudeCode: try MCPConfigFile.remove(at: ClaudePaths.claudeCodeConfig)
+            case .claudeCode:
+                try MCPConfigFile.remove(at: ClaudePaths.claudeCodeConfig)
+                try ClaudeHookConfig.remove()
             case .claudeDesktop: try MCPConfigFile.remove(at: ClaudePaths.desktopConfig)
             }
         } catch {
