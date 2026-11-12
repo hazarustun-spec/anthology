@@ -11,16 +11,31 @@ struct NoteDetail: View {
     @State private var saveTask: Task<Void, Never>?
     @State private var conflictRevision: Int?
     @State private var showHistory = false
+    @State private var titleDraft = ""
+    @FocusState private var titleFocused: Bool
 
     var body: some View {
         let note = library.note(noteID)
         VStack(alignment: .leading, spacing: 0) {
             if conflictRevision != nil { conflictBanner }
+            if let warning = library.lastChange(for: noteID), warning.warning == "large-removal", warning.by != .app {
+                removalBanner(warning)
+            }
             VStack(alignment: .leading, spacing: 12) {
-                Text(note?.meta.title ?? "")
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundStyle(Color(palette: Palette.text))
-                    .textSelection(.enabled)
+                HStack(alignment: .firstTextBaseline) {
+                    TextField("Title", text: $titleDraft)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(Color(palette: Palette.text))
+                        .focused($titleFocused)
+                        .onSubmit { commitTitle() }
+                        .onChange(of: titleFocused) { _, focused in if !focused { commitTitle() } }
+                    if let note {
+                        Menu { NoteMenu(note: note) } label: { Image(systemName: "ellipsis.circle") }
+                            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                            .foregroundStyle(Color(palette: Palette.secondary))
+                    }
+                }
                 if let last = library.lastChange(for: noteID) {
                     Button { showHistory.toggle() } label: { SourceBadge(entry: last) }
                         .buttonStyle(.plain)
@@ -74,7 +89,34 @@ struct NoteDetail: View {
         .padding(.top, 16)
     }
 
+    private func removalBanner(_ entry: HistoryEntry) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle").foregroundStyle(Color(palette: Palette.accent))
+            Text("\(entry.by.displayName) removed most of this note.").foregroundStyle(Color(palette: Palette.text))
+            Spacer()
+            Button("Undo") {
+                library.restore(noteID: noteID, revision: entry.rev - 1)
+                load()
+            }
+        }
+        .font(.system(size: 12))
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color(palette: Palette.accentWash)))
+        .padding(.top, 16)
+    }
+
+    private func commitTitle() {
+        let current = library.note(noteID)?.meta.title ?? ""
+        let trimmed = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { titleDraft = current; return }
+        guard trimmed != current else { return }
+        flush()
+        library.renameNote(noteID, to: trimmed)
+        baseRevision = library.note(noteID)?.meta.revision ?? baseRevision
+    }
+
     private func load() {
+        titleDraft = library.note(noteID)?.meta.title ?? ""
         text = library.body(for: noteID)
         baseRevision = library.note(noteID)?.meta.revision ?? 0
         dirty = false

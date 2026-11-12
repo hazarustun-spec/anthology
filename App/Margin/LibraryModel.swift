@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import MarginCore
 import Observation
@@ -23,6 +24,7 @@ final class LibraryModel {
 
     var selectedTopicID: String?
     var selectedNoteID: String?
+    var showSearch = false
 
     let store: MarginStore?
     private var fingerprint = ""
@@ -142,6 +144,72 @@ final class LibraryModel {
 
     func clearFreshLines(_ noteID: String) { freshLines[noteID] = nil }
 
+    // MARK: Search, capture, organize
+
+    struct SearchHit: Hashable {
+        var noteID: String
+        var title: String
+        var topic: Topic
+        var snippet: String
+        static func == (a: SearchHit, b: SearchHit) -> Bool { a.noteID == b.noteID }
+        func hash(into h: inout Hasher) { h.combine(noteID) }
+    }
+
+    /// Searches the in-memory snapshot (titles first, then bodies); empty query shows recent notes.
+    func search(_ query: String) -> [SearchHit] {
+        let all = snapshot.notesByTopic.values.joined().sorted { $0.meta.updated > $1.meta.updated }
+        let q = query.trimmingCharacters(in: .whitespaces).folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "tr"))
+        func fold(_ s: String) -> String { s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "tr")) }
+        var hits: [(Int, SearchHit)] = []
+        for ref in all {
+            let body = snapshot.bodies[ref.meta.id] ?? ""
+            if q.isEmpty {
+                hits.append((0, SearchHit(noteID: ref.meta.id, title: ref.meta.title, topic: ref.topic, snippet: firstLine(body))))
+                continue
+            }
+            if fold(ref.meta.title).contains(q) || fold(ref.topic.title).contains(q) {
+                hits.append((0, SearchHit(noteID: ref.meta.id, title: ref.meta.title, topic: ref.topic, snippet: firstLine(body))))
+            } else if let line = body.split(separator: "\n").first(where: { fold(String($0)).contains(q) }) {
+                hits.append((1, SearchHit(noteID: ref.meta.id, title: ref.meta.title, topic: ref.topic, snippet: line.trimmingCharacters(in: .whitespaces))))
+            }
+        }
+        return Array(hits.sorted { $0.0 < $1.0 }.map(\.1).prefix(q.isEmpty ? 8 : 30))
+    }
+
+    private func firstLine(_ body: String) -> String {
+        body.split(separator: "\n").first { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.map(String.init) ?? ""
+    }
+
+    func ensureInbox() -> String? {
+        if let inbox = topics.first(where: { $0.title == "Inbox" }) { return inbox.id }
+        guard let store, let t = try? store.createTopic(title: "Inbox", source: nil) else { return nil }
+        refresh(markChanges: false, sync: true)
+        return t.id
+    }
+
+    func quickCapture(_ text: String, topicID: String) {
+        guard let store, let ref = try? store.quickCapture(text, topicID: topicID, by: .app, noteTitle: MarginTools.quickNoteTitle) else { return }
+        ownRevisions[ref.meta.id] = ref.meta.revision
+        refresh(markChanges: false, sync: true)
+    }
+
+    func renameNote(_ id: String, to title: String) {
+        guard let store, let ref = try? store.renameNote(id: id, title: title, by: .app) else { return }
+        ownRevisions[id] = ref.meta.revision
+        refresh(markChanges: false, sync: true)
+    }
+
+    func moveNote(_ id: String, to topicID: String) {
+        guard let store, (try? store.moveNote(id: id, toTopicID: topicID)) != nil else { return }
+        NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+        refresh(markChanges: false, sync: true)
+    }
+
+    func setAppearance(topicID: String, icon: String?, color: String?) {
+        _ = try? store?.setTopicAppearance(id: topicID, icon: icon, color: color)
+        refresh(markChanges: false, sync: true)
+    }
+
     /// Puts back the body a change replaced. `revision` is the revision that existed before that change.
     func restore(noteID: String, revision: Int) {
         guard let store, let ref = try? store.restore(noteID: noteID, revision: revision, by: .app) else { return }
@@ -205,6 +273,9 @@ final class LibraryModel {
                 let before = Set((old.bodies[id] ?? "").split(separator: "\n").map(String.init))
                 let added = Set((new.bodies[id] ?? "").split(separator: "\n").map(String.init)).subtracting(before)
                 freshLines[id] = added.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                if let item = new.activity.first(where: { $0.noteID == id }), item.entry.by != .app {
+                    Notifier.shared.post(item)
+                }
             }
         }
         snapshot = new

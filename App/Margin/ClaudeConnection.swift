@@ -7,8 +7,41 @@ import Observation
 @MainActor @Observable
 final class ClaudeConnection {
     enum Client: String, CaseIterable, Identifiable {
-        case claudeCode, claudeDesktop
+        case claudeCode, claudeDesktop, geminiCLI, cursor, vscode, codex
         var id: String { rawValue }
+
+        var home: URL { FileManager.default.homeDirectoryForCurrentUser }
+
+        /// JSON config file and the top-level key holding MCP servers (Codex uses TOML instead).
+        var jsonConfig: (url: URL, key: String)? {
+            switch self {
+            case .claudeCode: (ClaudePaths.claudeCodeConfig, "mcpServers")
+            case .claudeDesktop: (ClaudePaths.desktopConfig, "mcpServers")
+            case .geminiCLI: (home.appendingPathComponent(".gemini/settings.json"), "mcpServers")
+            case .cursor: (home.appendingPathComponent(".cursor/mcp.json"), "mcpServers")
+            case .vscode: (home.appendingPathComponent("Library/Application Support/Code/User/mcp.json"), "servers")
+            case .codex: nil
+            }
+        }
+
+        var source: String {
+            switch self {
+            case .claudeCode: "claude-code"
+            case .claudeDesktop: "cowork"
+            case .geminiCLI: "gemini"
+            case .cursor: "cursor"
+            case .vscode: "vscode"
+            case .codex: "codex"
+            }
+        }
+
+        func entry(helper: String) -> [String: Any] {
+            switch self {
+            case .claudeCode: ["type": "stdio", "command": helper, "args": [], "env": [:]]
+            case .vscode: ["type": "stdio", "command": helper, "args": ["--source", source]]
+            default: ["command": helper, "args": ["--source", source]]
+            }
+        }
     }
 
     private(set) var status: [Client: MCPConfigFile.Status] = [:]
@@ -26,7 +59,13 @@ final class ClaudeConnection {
         // The shortcut hook is part of the Claude Code connection; offer "Update" when it is missing.
         if code == .connected, !ClaudeHookConfig.isInstalled(command: hookCommand) { code = .differentBinary }
         status[.claudeCode] = code
-        status[.claudeDesktop] = MCPConfigFile.status(at: ClaudePaths.desktopConfig, binary: helperPath)
+        for client in Client.allCases where client != .claudeCode {
+            if let cfg = client.jsonConfig {
+                status[client] = MCPConfigFile.status(at: cfg.url, binary: helperPath, key: cfg.key)
+            } else {
+                status[client] = CodexConfig.status(command: helperPath)
+            }
+        }
         // The installed helper must be byte-identical to the one in this app; otherwise offer "Update".
         if !installedHelperMatchesBundle {
             for client in Client.allCases where status[client] == .connected { status[client] = .differentBinary }
@@ -44,6 +83,11 @@ final class ClaudeConnection {
                     try await connectClaudeCode()
                     try ClaudeHookConfig.install(command: hookCommand)
                 case .claudeDesktop: try await connectClaudeDesktop()
+                case .codex: try CodexConfig.install(command: helperPath, args: ["--source", client.source])
+                default:
+                    if let cfg = client.jsonConfig {
+                        try MCPConfigFile.install(at: cfg.url, entry: client.entry(helper: helperPath), key: cfg.key)
+                    }
                 }
             } catch {
                 lastError = error.localizedDescription
@@ -59,7 +103,9 @@ final class ClaudeConnection {
             case .claudeCode:
                 try MCPConfigFile.remove(at: ClaudePaths.claudeCodeConfig)
                 try ClaudeHookConfig.remove()
-            case .claudeDesktop: try MCPConfigFile.remove(at: ClaudePaths.desktopConfig)
+            case .codex: try CodexConfig.remove()
+            default:
+                if let cfg = client.jsonConfig { try MCPConfigFile.remove(at: cfg.url, key: cfg.key) }
             }
         } catch {
             lastError = error.localizedDescription
@@ -86,7 +132,7 @@ final class ClaudeConnection {
         guard !running.contains(where: { !$0.isTerminated }) else {
             throw NSError(domain: "Margin", code: 2, userInfo: [NSLocalizedDescriptionKey: String(localized: "Quit Claude, then press Connect again.")])
         }
-        try MCPConfigFile.install(at: ClaudePaths.desktopConfig, entry: ["command": helperPath, "args": ["--source", "cowork"]])
+        try MCPConfigFile.install(at: ClaudePaths.desktopConfig, entry: Client.claudeDesktop.entry(helper: helperPath))
         if !running.isEmpty, let appURL {
             _ = try? await NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration())
         }

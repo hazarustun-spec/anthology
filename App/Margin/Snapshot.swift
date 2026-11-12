@@ -26,11 +26,29 @@ enum Snapshot {
         let args = ProcessInfo.processInfo.arguments
         window.appearance = NSAppearance(named: args.contains("--light") ? .aqua : .darkAqua)
         if let i = args.firstIndex(of: "--note"), i + 1 < args.count { library.open(noteID: args[i + 1]) }
-        if args.contains("--settings") {
-            window.setContentSize(NSSize(width: 520, height: 520))
-            window.contentView = NSHostingView(rootView: SettingsView().environment(library))
+        func value(_ flag: String) -> String? {
+            guard let i = args.firstIndex(of: flag), i + 1 < args.count else { return nil }
+            return args[i + 1]
+        }
+        let lock = AppLock()
+        if let tab = value("--settings") {
+            UserDefaults.standard.set(Int(tab) ?? 0, forKey: "settingsTab")
+            window.setContentSize(NSSize(width: 560, height: 600))
+            window.contentView = NSHostingView(rootView: SettingsView().environment(library).environment(lock))
+        } else if let step = value("--onboarding") {
+            window.setContentSize(NSSize(width: 720, height: 520))
+            window.contentView = NSHostingView(rootView: OnboardingView(startStep: Int(step) ?? 0).environment(lock))
+        } else if let q = value("--search") {
+            window.setContentSize(NSSize(width: 700, height: 520))
+            window.contentView = NSHostingView(rootView:
+                SearchPalette(isPresented: .constant(true), query: q).environment(library).padding(40)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .background(Color(palette: Palette.canvas)))
+        } else if args.contains("--capture") {
+            window.setContentSize(NSSize(width: 600, height: 230))
+            window.contentView = NSHostingView(rootView: QuickCaptureView(library: library, dismiss: {}).padding(20).background(Color(palette: Palette.canvas)))
         } else {
-            window.contentView = NSHostingView(rootView: LibraryView(snapshotLayout: true).environment(library))
+            window.contentView = NSHostingView(rootView: LibraryView(snapshotLayout: true).environment(library).environment(lock))
         }
         window.orderFrontRegardless()
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {

@@ -6,6 +6,8 @@ struct TopicList: View {
     @State private var renaming: String?
     @State private var draftTitle = ""
     @State private var addingTopic = false
+    @State private var styling: String?
+    @State private var dropTarget: String?
 
     var body: some View {
         @Bindable var library = library
@@ -40,8 +42,10 @@ struct TopicList: View {
     private func row(_ topic: Topic) -> some View {
         let selected = library.selectedTopicID == topic.id
         HStack(spacing: 8) {
-            Image(systemName: selected ? "folder.fill" : "folder")
-                .font(.system(size: 12)).foregroundStyle(Color(palette: selected ? Palette.accent : Palette.tertiary))
+            Image(systemName: topic.icon ?? "folder")
+                .symbolVariant(selected ? .fill : .none)
+                .font(.system(size: 12)).foregroundStyle(TopicStyle.color(topic.color))
+                .frame(width: 16)
             if renaming == topic.id {
                 TextField("", text: $draftTitle).textFieldStyle(.plain)
                     .onSubmit { library.renameTopic(topic.id, to: draftTitle); renaming = nil }
@@ -60,13 +64,23 @@ struct TopicList: View {
         .padding(.horizontal, 10).padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(palette: selected ? Palette.card : .clear))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color(palette: selected ? Palette.hairline : .clear), lineWidth: 0.5))
+                .fill(Color(palette: dropTarget == topic.id ? Palette.accentWash : selected ? Palette.card : .clear))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color(palette: dropTarget == topic.id ? Palette.accentBorder : selected ? Palette.hairline : .clear), lineWidth: dropTarget == topic.id ? 1.5 : 0.5))
         )
+        .scaleEffect(dropTarget == topic.id ? 1.03 : 1)
+        .animation(.spring(duration: 0.25), value: dropTarget)
         .contentShape(Rectangle())
         .onTapGesture { library.selectTopic(topic.id) }
+        .dropDestination(for: String.self) { ids, _ in
+            for id in ids { library.moveNote(id, to: topic.id) }
+            return !ids.isEmpty
+        } isTargeted: { dropTarget = $0 ? topic.id : (dropTarget == topic.id ? nil : dropTarget) }
+        .popover(isPresented: Binding(get: { styling == topic.id }, set: { if !$0 { styling = nil } })) {
+            TopicAppearancePicker(topic: topic) { icon, color in library.setAppearance(topicID: topic.id, icon: icon, color: color) }
+        }
         .contextMenu {
             Button("Rename") { draftTitle = topic.title; renaming = topic.id }
+            Button("Icon and color…") { styling = topic.id }
             Button("New note") { library.createNote(in: topic.id) }
         }
     }

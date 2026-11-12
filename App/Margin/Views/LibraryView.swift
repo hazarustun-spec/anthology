@@ -18,6 +18,16 @@ struct LibraryView: View {
             }
         } else {
             split
+                .overlay(alignment: .top) {
+                    if library.showSearch {
+                        ZStack(alignment: .top) {
+                            Color.black.opacity(0.18).ignoresSafeArea().onTapGesture { library.showSearch = false }
+                            SearchPalette(isPresented: Bindable(library).showSearch).padding(.top, 90)
+                        }
+                        .transition(.opacity)
+                    }
+                }
+                .animation(.spring(duration: 0.3), value: library.showSearch)
         }
     }
 

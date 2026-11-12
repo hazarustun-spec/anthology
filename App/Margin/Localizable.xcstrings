@@ -481,6 +481,746 @@
           }
         }
       }
+    },
+    "General": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genel"
+          }
+        }
+      }
+    },
+    "Connections": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bağlantılar"
+          }
+        }
+      }
+    },
+    "Shortcuts": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kısayollar"
+          }
+        }
+      }
+    },
+    "Privacy": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizlilik"
+          }
+        }
+      }
+    },
+    "Lock Margin with %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Margin'i %@ ile kilitle"
+          }
+        }
+      }
+    },
+    "Lock after": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilitleme süresi"
+          }
+        }
+      }
+    },
+    "Immediately": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hemen"
+          }
+        }
+      }
+    },
+    "1 minute": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 dakika"
+          }
+        }
+      }
+    },
+    "5 minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 dakika"
+          }
+        }
+      }
+    },
+    "15 minutes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 dakika"
+          }
+        }
+      }
+    },
+    "1 hour": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 saat"
+          }
+        }
+      }
+    },
+    "Margin also locks when your Mac sleeps.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac uyku moduna geçince Margin de kilitlenir."
+          }
+        }
+      }
+    },
+    "Background": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arka plan"
+          }
+        }
+      }
+    },
+    "Notify when an AI tool changes a note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir yapay zekâ aracı notu değiştirince bildir"
+          }
+        }
+      }
+    },
+    "Open Margin at login": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oturum açılınca Margin'i başlat"
+          }
+        }
+      }
+    },
+    "Notifications are silent. Margin keeps running in the menu bar after you close its window, so it can tell you about changes.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildirimler sessizdir. Penceresini kapatsan da Margin menü çubuğunda çalışmaya devam eder; böylece değişiklikleri sana haber verebilir."
+          }
+        }
+      }
+    },
+    "Claude": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude"
+          }
+        }
+      }
+    },
+    "Other AI tools": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diğer yapay zekâ araçları"
+          }
+        }
+      }
+    },
+    "Copilot agent mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copilot ajan modu"
+          }
+        }
+      }
+    },
+    "Restart a tool after connecting it.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bağladıktan sonra aracı yeniden başlat."
+          }
+        }
+      }
+    },
+    "Allow AI tools to move notes between topics": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekâ araçları notları konular arasında taşıyabilsin"
+          }
+        }
+      }
+    },
+    "Allow AI tools to delete notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekâ araçları not silebilsin"
+          }
+        }
+      }
+    },
+    "What AI tools may do": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekâ araçlarının izinleri"
+          }
+        }
+      }
+    },
+    "Every AI change is kept in the note's history and can be undone. Deleting is off by default, so a tool tricked by a web page can't remove your notes.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekânın yaptığı her değişiklik notun geçmişinde saklanır ve geri alınabilir. Silme varsayılan olarak kapalıdır; bir web sayfasıyla kandırılmış bir araç notlarını silemez."
+          }
+        }
+      }
+    },
+    "Keyboard": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye"
+          }
+        }
+      }
+    },
+    "Quick note window": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı not penceresi"
+          }
+        }
+      }
+    },
+    "Works from any app. Click, then press a new combination; Delete turns it off.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her uygulamadan çalışır. Tıkla, sonra yeni tuş kombinasyonuna bas; Delete kapatır."
+          }
+        }
+      }
+    },
+    "Press keys…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuşlara bas…"
+          }
+        }
+      }
+    },
+    "Off": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapalı"
+          }
+        }
+      }
+    },
+    "Margin is locked": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Margin kilitli"
+          }
+        }
+      }
+    },
+    "Unlock with %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ile aç"
+          }
+        }
+      }
+    },
+    "Couldn't verify. Try again.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doğrulanamadı. Tekrar dene."
+          }
+        }
+      }
+    },
+    "Use Password": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parola kullan"
+          }
+        }
+      }
+    },
+    "unlock your notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "notlarının kilidini açmak"
+          }
+        }
+      }
+    },
+    "turn on the lock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kilidi açmak"
+          }
+        }
+      }
+    },
+    "Unlock": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kilidi aç"
+          }
+        }
+      }
+    },
+    "Saved": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedildi"
+          }
+        }
+      }
+    },
+    "Quick note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı not"
+          }
+        }
+      }
+    },
+    "Write a note… (Return to save, ⇧Return for a new line)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir not yaz… (kaydetmek için Return, yeni satır için ⇧Return)"
+          }
+        }
+      }
+    },
+    "Search all notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm notlarda ara"
+          }
+        }
+      }
+    },
+    "Icon and color": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simge ve renk"
+          }
+        }
+      }
+    },
+    "Icon and color…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simge ve renk…"
+          }
+        }
+      }
+    },
+    "Copy as Markdown": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown olarak kopyala"
+          }
+        }
+      }
+    },
+    "Export as PDF…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF olarak dışa aktar…"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finder'da göster"
+          }
+        }
+      }
+    },
+    "Move to": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taşı"
+          }
+        }
+      }
+    },
+    "Title": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başlık"
+          }
+        }
+      }
+    },
+    "%@ removed most of this note.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ bu notun büyük kısmını sildi."
+          }
+        }
+      }
+    },
+    "Quick Note": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı Not"
+          }
+        }
+      }
+    },
+    "Search Notes": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notlarda Ara"
+          }
+        }
+      }
+    },
+    "Welcome Tour": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tanıtım Turu"
+          }
+        }
+      }
+    },
+    "Lock Margin": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Margin'i Kilitle"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geç"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devam"
+          }
+        }
+      }
+    },
+    "Start using Margin": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Margin'i kullanmaya başla"
+          }
+        }
+      }
+    },
+    "Welcome to Margin": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Margin'e hoş geldin"
+          }
+        }
+      }
+    },
+    "The notes app your AI writes into. Say it in Claude, find it here, on your Mac and iPhone.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekânın içine yazdığı not uygulaması. Claude'a söyle, burada bul; Mac'inde ve iPhone'unda."
+          }
+        }
+      }
+    },
+    "add SQL to my skills": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQL'i skill listeme ekle"
+          }
+        }
+      }
+    },
+    "Saved to Career › Skills": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kariyer › Skiller notuna kaydedildi"
+          }
+        }
+      }
+    },
+    "Skills": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skiller"
+          }
+        }
+      }
+    },
+    "System design": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem tasarımı"
+          }
+        }
+      }
+    },
+    "Public speaking": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topluluk önünde konuşma"
+          }
+        }
+      }
+    },
+    "SQL": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SQL"
+          }
+        }
+      }
+    },
+    "Just say it in chat": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sohbette söylemen yeterli"
+          }
+        }
+      }
+    },
+    "Start a message with your shortcut and Claude files it into the right note, without asking.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesajına kısayolunla başla; Claude sormadan doğru nota yerleştirsin."
+          }
+        }
+      }
+    },
+    "Connect your AI": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekânı bağla"
+          }
+        }
+      }
+    },
+    "One click. Margin adds itself to Claude; Gemini CLI, Cursor, VS Code and Codex are in Settings.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tek tık. Margin kendini Claude'a ekler; Gemini CLI, Cursor, VS Code ve Codex Ayarlar'da."
+          }
+        }
+      }
+    },
+    "Make the shortcuts yours": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kısayolları kendine göre ayarla"
+          }
+        }
+      }
+    },
+    "Change them any time in Settings › Shortcuts.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İstediğin zaman Ayarlar › Kısayollar'dan değiştirebilirsin."
+          }
+        }
+      }
+    },
+    "Saved word for word, never sent to Claude": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olduğu gibi kaydedilir, Claude'a gitmez"
+          }
+        }
+      }
+    },
+    "Jot something down from any app": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her uygulamadan hızlıca not al"
+          }
+        }
+      }
+    },
+    "You're all set": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Her şey hazır"
+          }
+        }
+      }
+    },
+    "Your notes are plain Markdown files on your Mac. Every AI change can be undone, and you can lock Margin with Touch ID in Settings.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notların Mac'inde düz Markdown dosyaları olarak durur. Yapay zekânın her değişikliği geri alınabilir; Ayarlar'dan Margin'i Touch ID ile kilitleyebilirsin."
+          }
+        }
+      }
     }
   }
 }

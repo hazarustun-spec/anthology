@@ -59,31 +59,48 @@ struct NoteList: View {
         .padding(.bottom, 4)
         .contentShape(Rectangle())
         .onTapGesture { library.selectedNoteID = note.meta.id }
-        .contextMenu {
-            Button("Move to Trash", role: .destructive) { library.deleteNote(note.meta.id) }
+        .draggable(note.meta.id) {
+            Label(note.meta.title, systemImage: "doc.text")
+                .padding(8).background(RoundedRectangle(cornerRadius: 8).fill(Color(palette: Palette.card)))
         }
+        .contextMenu { NoteMenu(note: note) }
     }
 
     private func preview(_ body: String) -> String {
-        body.split(separator: "\n")
-            .map { line -> String in
-                var l = String(line)
-                for marker in ["- [ ] ", "- [x] ", "- [X] "] where l.hasPrefix(marker) { l.removeFirst(marker.count) }
-                l = l.replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "`", with: "")
-                return l.trimmingCharacters(in: CharacterSet(charactersIn: "#-*+_").union(.whitespaces))
+        body.split(separator: "\n").map { NoteText.plain(String($0)) }.filter { !$0.isEmpty }.prefix(3).joined(separator: " · ")
+    }
+}
+
+/// Strips Markdown markers for one-line previews.
+enum NoteText {
+    static func plain(_ line: String) -> String {
+        var l = line.trimmingCharacters(in: .whitespaces)
+        for marker in ["- [ ] ", "- [x] ", "- [X] "] where l.hasPrefix(marker) { l.removeFirst(marker.count) }
+        l = l.replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "`", with: "")
+        return l.trimmingCharacters(in: CharacterSet(charactersIn: "#-*+_").union(.whitespaces))
+    }
+}
+
+struct NoteMenu: View {
+    @Environment(LibraryModel.self) private var library
+    let note: NoteRef
+
+    var body: some View {
+        Button("Copy as Markdown") { NoteExport.copyMarkdown(title: note.meta.title, body: library.body(for: note.meta.id)) }
+        Button("Export as PDF…") { NoteExport.exportPDF(title: note.meta.title, body: library.body(for: note.meta.id)) }
+        Button("Show in Finder") { NoteExport.reveal(note.fileURL) }
+        Menu("Move to") {
+            ForEach(library.topics.filter { $0.id != note.topic.id }) { t in
+                Button(t.title) { library.moveNote(note.meta.id, to: t.id) }
             }
-            .filter { !$0.isEmpty }.prefix(3).joined(separator: " · ")
+        }
+        Divider()
+        Button("Move to Trash", role: .destructive) { library.deleteNote(note.meta.id) }
     }
 }
 
 extension ChangeSource {
-    var label: LocalizedStringKey {
-        switch self {
-        case .claudeCode: "Claude Code"
-        case .cowork: "Cowork"
-        case .app: "You"
-        }
-    }
+    var label: LocalizedStringKey { LocalizedStringKey(displayName) }
 
     var symbol: String { self == .app ? "person" : "sparkles" }
 }
