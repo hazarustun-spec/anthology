@@ -30,7 +30,7 @@ final class LibraryModel {
     var selectedNoteID: String?
     var showSearch = false
 
-    let store: MarginStore?
+    private(set) var store: MarginStore?
     private var fingerprint = ""
     private var loading = false
     private var timer: Timer?
@@ -40,8 +40,27 @@ final class LibraryModel {
     private(set) var location: RootResolver.Location = .local
 
     convenience init() {
+        #if os(macOS)
+        // With the iCloud entitlement this returns quickly; resolving first lets migration finish before any write.
         let (root, location) = RootResolver.resolve()
         self.init(root: root)
+        self.useLocation(location)
+        #else
+        // iOS: never ask for the iCloud container on the main thread; start local, switch when it answers.
+        self.init(root: MarginPaths.localRoot)
+        Task.detached(priority: .userInitiated) {
+            let (root, location) = RootResolver.resolve()
+            await MainActor.run {
+                guard location == .iCloud, let store = try? MarginStore(root: root) else { return }
+                self.store = store
+                self.useLocation(location)
+                self.refresh(markChanges: false)
+            }
+        }
+        #endif
+    }
+
+    private func useLocation(_ location: RootResolver.Location) {
         self.location = location
         if location == .iCloud {
             ICloudDownloader.shared.onChange = { [weak self] in self?.refreshIfChanged() }

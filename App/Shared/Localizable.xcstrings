@@ -1221,6 +1221,174 @@
           }
         }
       }
+    },
+    "%lld notes": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld note"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld notes"
+                }
+              }
+            }
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld not"
+          }
+        }
+      }
+    },
+    "Ask Claude to save something to Margin on your Mac. It appears here in seconds.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac'inde Claude'a Margin'e bir şey kaydetmesini söyle. Birkaç saniye içinde burada görünür."
+          }
+        }
+      }
+    },
+    "Share": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paylaş"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vazgeç"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydet"
+          }
+        }
+      }
+    },
+    "Write a note…": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir not yaz…"
+          }
+        }
+      }
+    },
+    "Topic": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konu"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitti"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarlar"
+          }
+        }
+      }
+    },
+    "Syncing with iCloud": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud ile eşitleniyor"
+          }
+        }
+      }
+    },
+    "Saved on this iPhone only": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yalnızca bu iPhone'da kayıtlı"
+          }
+        }
+      }
+    },
+    "Signed in with your Apple ID. Notes appear on all your devices.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple hesabınla bağlı. Notlar tüm cihazlarında görünür."
+          }
+        }
+      }
+    },
+    "Turn on iCloud Drive in Settings to sync with your Mac.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac'inle eşitlemek için Ayarlar'dan iCloud Drive'ı aç."
+          }
+        }
+      }
+    },
+    "Lock with Face ID": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID ile kilitle"
+          }
+        }
+      }
+    },
+    "To save from chat, connect Claude in Margin for Mac. Your notes are plain Markdown files in iCloud Drive › Margin.": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sohbetten kaydetmek için Claude'u Mac'teki Margin'den bağla. Notların iCloud Drive › Margin içinde düz Markdown dosyaları olarak durur."
+          }
+        }
+      }
     }
   }
 }

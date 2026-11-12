@@ -34,6 +34,16 @@ struct RootView: View {
                 }
         }
         .sheet(isPresented: $showCapture) { CaptureSheet().presentationDetents([.height(300), .medium]) }
+        #if DEBUG
+        .task {
+            // Screenshot helper: `-openNote <id>` pushes a note on launch (debug builds only).
+            let args = ProcessInfo.processInfo.arguments
+            if let i = args.firstIndex(of: "-openNote"), i + 1 < args.count {
+                try? await Task.sleep(for: .milliseconds(600))
+                if let ref = library.note(args[i + 1]) { path = [.topic(ref.topic.id), .note(ref.meta.id)] }
+            }
+        }
+        #endif
         .sheet(isPresented: $showSettings) { MobileSettings() }
     }
 }

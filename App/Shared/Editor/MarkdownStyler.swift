@@ -74,6 +74,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
             } else {
                 storage.addAttribute(.foregroundColor, value: Palette.accent, range: marker)
             }
+            hangingIndent(storage, line: text.lineRange(for: m.range), prefix: m.range)
         }
         Self.checkbox.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
@@ -82,6 +83,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
             storage.removeAttribute(.marginBullet, range: marker)
             storage.addAttributes([.foregroundColor: PlatformColor.clear, .font: PlatformFont.monospacedSystemFont(ofSize: 11, weight: .regular)], range: marker)
             storage.addAttribute(.marginCheckbox, value: checked, range: NSRange(location: marker.location + 2, length: 3))
+            hangingIndent(storage, line: text.lineRange(for: m.range), prefix: NSRange(location: m.range.location, length: m.range.length))
             if checked {
                 let line = text.lineRange(for: m.range)
                 let rest = NSRange(location: NSMaxRange(m.range), length: max(0, NSMaxRange(line) - NSMaxRange(m.range)))
@@ -114,6 +116,14 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
                 }
             }
         }
+    }
+
+    /// Wrapped lines of a list item start under its text, not under the marker.
+    private func hangingIndent(_ storage: NSTextStorage, line: NSRange, prefix: NSRange) {
+        let width = storage.attributedSubstring(from: prefix).size().width
+        let p = (paragraphStyle.mutableCopy() as! NSMutableParagraphStyle)
+        p.headIndent = ceil(width)
+        storage.addAttribute(.paragraphStyle, value: p, range: line)
     }
 
     private func dimMarkers(_ storage: NSTextStorage, _ range: NSRange, _ width: Int) {
