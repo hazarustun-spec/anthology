@@ -12,3 +12,9 @@
   folders; check what `project_path` Cowork reports on retest.
 - Install gotcha: overwriting the installed binary in place got it SIGKILLed (exit 137, stale
   code-signature cache). Install scripts now `rm` before `cp`.
+
+## 2026-11-12 — why the Desktop entry vanished
+- `claude_desktop_config.json` was rewritten by the running Claude Desktop at 05:20 and the
+  `mcpServers.margin` entry was gone. Claude Desktop keeps the config in memory and writes it back,
+  so edits made while it runs are lost. The Connect button therefore quits Claude, writes the
+  config, and reopens Claude.

@@ -28,3 +28,17 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Margin/Margin.entitlements
         CODE_SIGN_IDENTITY: "-"
         ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    postCompileScripts:
+      - name: Embed margin-mcp helper
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/../MarginKit"
+          SWIFT() { env -i PATH="/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME" DEVELOPER_DIR="$DEVELOPER_DIR" xcrun swift "$@"; }
+          SWIFT build -c release --product margin-mcp
+          BIN="$(SWIFT build -c release --show-bin-path)"
+          DEST="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers"
+          mkdir -p "$DEST"
+          rm -f "$DEST/margin-mcp"
+          cp "$BIN/margin-mcp" "$DEST/margin-mcp"
