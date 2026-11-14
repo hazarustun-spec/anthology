@@ -18,3 +18,9 @@
   `mcpServers.margin` entry was gone. Claude Desktop keeps the config in memory and writes it back,
   so edits made while it runs are lost. The Connect button therefore quits Claude, writes the
   config, and reopens Claude.
+
+## 2026-11-14 — iCloud end-to-end verified (spec §9 risk 2)
+- margin-mcp (no entitlements) writes into `~/Library/Mobile Documents/iCloud~<bundle>/Documents`;
+  files upload (`ubiquitousItemIsUploaded == true`) and appeared on Hazar's iPhone 14 Pro Max
+  within seconds. The Mac app records the folder in `~/Library/Application Support/Margin/notes-root`.
+- Latency: hook 0.5 s; MCP tool calls 0.2–0.5 s.
