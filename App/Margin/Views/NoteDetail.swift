@@ -49,10 +49,13 @@ struct NoteDetail: View {
         .frame(maxWidth: 720, alignment: .leading)
         .padding(.horizontal, 44)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .glassPanel(cornerRadius: 28, fill: 0.42)
+        .glassPanel(cornerRadius: 28, fill: 0.25)
         .padding(.horizontal, 16).padding(.bottom, 16).padding(.top, 6)
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
+        .onChange(of: library.note(noteID)?.meta.title) { _, new in
+            if !titleFocused, let new, new != titleDraft { titleDraft = new }
+        }
         .onDisappear { flush() }
         .task(id: library.freshLines[noteID]) {
             guard library.freshLines[noteID] != nil else { return }

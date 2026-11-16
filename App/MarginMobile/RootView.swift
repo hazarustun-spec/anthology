@@ -122,7 +122,7 @@ struct TopicsScreen: View {
                             }
                             .frame(width: 190, height: 92, alignment: .topLeading)
                             .padding(12)
-                            .glassPanel(cornerRadius: 20, fill: 0.1, clear: true, interactive: true,
+                            .glassPanel(cornerRadius: 20, fill: 0.0, clear: true, interactive: true,
                                         tint: library.isFresh(item.noteID) ? Color(palette: Palette.accent).opacity(0.35) : nil)
                         }
                         .buttonStyle(PressableStyle())
@@ -156,7 +156,7 @@ struct TopicTile: View {
         }
         .padding(14)
         .frame(height: 118)
-        .glassPanel(cornerRadius: 24, fill: 0.1, clear: true, interactive: true)
+        .glassPanel(cornerRadius: 24, fill: 0.0, clear: true, interactive: true)
     }
 }
 
@@ -175,7 +175,7 @@ struct Card<Content: View>: View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
-            .glassPanel(cornerRadius: 20, fill: 0.1, clear: true, interactive: true, tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
+            .glassPanel(cornerRadius: 20, fill: 0.0, clear: true, interactive: true, tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
     }
 }
 

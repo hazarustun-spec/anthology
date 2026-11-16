@@ -120,17 +120,29 @@ struct NoteScreen: View {
     @State private var conflictRevision: Int?
     @State private var showHistory = false
     @FocusState private var titleFocused: Bool
+    @State private var editingTitle = false
 
     var body: some View {
         let note = library.note(noteID)
         VStack(alignment: .leading, spacing: 10) {
             if conflictRevision != nil { banner }
-            TextField("Title", text: $title, axis: .vertical)
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(Color(palette: Palette.text))
-                .focused($titleFocused)
-                .onSubmit(commitTitle)
-                .onChange(of: titleFocused) { _, f in if !f { commitTitle() } }
+            Group {
+                if editingTitle {
+                    TextField("Title", text: $title, axis: .vertical)
+                        .focused($titleFocused)
+                        .onSubmit(commitTitle)
+                        .onChange(of: titleFocused) { _, f in if !f { commitTitle(); editingTitle = false } }
+                        .onAppear { titleFocused = true }
+                } else {
+                    // Plain text when not editing: always renders (a vertical TextField can show empty on first push).
+                    Text(title.isEmpty ? (library.note(noteID)?.meta.title ?? "") : title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture { editingTitle = true }
+                }
+            }
+            .font(.system(size: 28, weight: .bold))
+            .foregroundStyle(Color(palette: Palette.text))
             if let last = library.lastChange(for: noteID) {
                 Button { showHistory = true } label: { SourceBadge(entry: last) }.buttonStyle(.plain)
             }
@@ -138,7 +150,7 @@ struct NoteScreen: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 14)
-        .glassPanel(cornerRadius: 32, fill: 0.42)
+        .glassPanel(cornerRadius: 32, fill: 0.25)
         .padding(.horizontal, 10)
         .padding(.top, 4)
         .background(AmbientBackground().ignoresSafeArea())
@@ -171,6 +183,10 @@ struct NoteScreen: View {
         }
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
+        .onChange(of: library.note(noteID)?.meta.title) { _, new in
+            // Keep the title field in sync with the stored title (also covers a late first load).
+            if !titleFocused, let new, new != title { title = new }
+        }
         .onDisappear(perform: flush)
         .task(id: library.freshLines[noteID]) {
             guard library.freshLines[noteID] != nil else { return }

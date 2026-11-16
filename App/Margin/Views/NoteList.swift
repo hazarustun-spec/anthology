@@ -38,7 +38,7 @@ struct NoteList: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassPanel(cornerRadius: 16, fill: selected ? 0.45 : 0.08, clear: true, interactive: true,
+        .glassPanel(cornerRadius: 16, fill: selected ? 0.3 : 0.0, clear: true, interactive: true,
                     tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
             .strokeBorder(Color(palette: Palette.accent).opacity(selected ? 0.55 : 0), lineWidth: 1.2))

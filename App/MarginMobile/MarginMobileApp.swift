@@ -18,7 +18,6 @@ struct MarginMobileApp: App {
                 .overlay { if lock.isLocked { MobileLockView().environment(lock).transition(.opacity) } }
                 .animation(.easeInOut(duration: 0.25), value: lock.isLocked)
                 .onChange(of: phase) { _, new in lock.scenePhaseChanged(new) }
-                .onAppear { LightSource.shared.startTilt() }
         }
     }
 }
