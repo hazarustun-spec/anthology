@@ -226,6 +226,12 @@ without consent; write in the language the user is speaking.
   badge ("Cowork · Added SQL and system design").
 - (Briefly built as "Ink"/option B by mistake; Hazar corrected to C.)
 
+## 7.2 Liquid Glass "Ambient" (Hazar's pick, 2026-11-16)
+- A slowly drifting sage / amber / sky mesh gradient backs every screen (deep green-navy in dark mode);
+  falls back to a flat canvas with Reduce Transparency and stops moving with Reduce Motion.
+- Sidebar, note cards, topic tiles, the editor sheet, palettes and banners are Liquid Glass panels
+  floating on it (with a light fill for legibility). Toolbars use system glass.
+
 ## 8. Left to the builder
 
 Exact visual design (within §6.5 direction; mockups shown to Hazar before

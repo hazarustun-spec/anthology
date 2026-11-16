@@ -47,10 +47,10 @@ struct NoteDetail: View {
             NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? []) { _ in scheduleSave() }
         }
         .frame(maxWidth: 720, alignment: .leading)
-        .padding(.horizontal, 48)
+        .padding(.horizontal, 44)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(palette: Palette.card))
-        .scrollEdgeEffectStyle(.hard, for: .top)
+        .glassPanel(cornerRadius: 26, fill: 0.55)
+        .padding(.horizontal, 16).padding(.bottom, 16).padding(.top, 6)
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
         .onDisappear { flush() }

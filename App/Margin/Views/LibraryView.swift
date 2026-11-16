@@ -66,6 +66,7 @@ struct LibraryView: View {
                     }
                 }
         }
+        .containerBackground(for: .window) { AmbientBackground() }
     }
 
     @ViewBuilder

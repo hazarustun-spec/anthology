@@ -7,10 +7,12 @@ struct NoteList: View {
     var body: some View {
         let notes = library.notes(for: library.selectedTopicID)
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 4) {
+            GlassEffectContainer(spacing: 2) {
+            LazyVStack(alignment: .leading, spacing: 8) {
                 ForEach(notes, id: \.meta.id) { note in row(note) }
             }
-            .padding(.horizontal, 10).padding(.vertical, 10)
+            .padding(.horizontal, 12).padding(.vertical, 12)
+            }
         }
         .scrollEdgeEffectStyle(.hard, for: .top)
         .overlay { if notes.isEmpty { EmptyState(symbol: "tray", title: "No notes yet", message: "Notes Claude saves from this folder appear here.") } }
@@ -36,17 +38,11 @@ struct NoteList: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(palette: fresh ? Palette.accentWash : Palette.card))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10).strokeBorder(
-                        Color(palette: selected || fresh ? Palette.accentBorder : Palette.hairline),
-                        lineWidth: selected || fresh ? 1 : 0.5
-                    )
-                )
-        )
-        .padding(.bottom, 4)
+        .glassPanel(cornerRadius: 16, fill: selected ? 0.6 : 0.22,
+                    tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(Color(palette: Palette.accent).opacity(selected ? 0.55 : 0), lineWidth: 1.2))
+        .contentShape(.rect(cornerRadius: 16))
         .contentShape(Rectangle())
         .onTapGesture { library.selectedNoteID = note.meta.id }
         .draggable(note.meta.id) {

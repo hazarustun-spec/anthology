@@ -83,6 +83,7 @@ struct TopicsScreen: View {
                 .padding(.horizontal, 16)
             } else {
                 if !library.activity.isEmpty { recent }
+                GlassEffectContainer(spacing: 2) {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                     ForEach(library.topics) { topic in
                         Button { open(.topic(topic.id)); Haptics.tap() } label: { TopicTile(topic: topic) }
@@ -91,10 +92,11 @@ struct TopicsScreen: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
+                }
             }
         }
         .scrollEdgeEffectStyle(.soft, for: .all)
-        .background(Color(palette: Palette.canvas).ignoresSafeArea())
+        .background(AmbientBackground().ignoresSafeArea())
         .overlay {
             if library.topics.isEmpty {
                 ContentUnavailableView("No notes yet", systemImage: "sparkles",
@@ -119,8 +121,8 @@ struct TopicsScreen: View {
                             }
                             .frame(width: 190, height: 92, alignment: .topLeading)
                             .padding(12)
-                            .background(RoundedRectangle(cornerRadius: 14).fill(Color(palette: library.isFresh(item.noteID) ? Palette.accentWash : Palette.card)))
-                            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color(palette: Palette.hairline), lineWidth: 0.5))
+                            .glassPanel(cornerRadius: 20, fill: 0.3,
+                                        tint: library.isFresh(item.noteID) ? Color(palette: Palette.accent).opacity(0.35) : nil)
                         }
                         .buttonStyle(PressableStyle())
                     }
@@ -151,8 +153,7 @@ struct TopicTile: View {
         }
         .padding(14)
         .frame(height: 118)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color(palette: Palette.card)))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color(palette: Palette.hairline), lineWidth: 0.5))
+        .glassPanel(cornerRadius: 24, fill: 0.28)
     }
 }
 
@@ -171,8 +172,7 @@ struct Card<Content: View>: View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color(palette: fresh ? Palette.accentWash : Palette.card)))
-            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color(palette: fresh ? Palette.accentBorder : Palette.hairline), lineWidth: fresh ? 1 : 0.5))
+            .glassPanel(cornerRadius: 20, fill: 0.3, tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
     }
 }
 
@@ -216,7 +216,7 @@ struct NotesScreen: View {
             .animation(.spring(duration: 0.4), value: library.freshNotes)
         }
         .scrollEdgeEffectStyle(.soft, for: .all)
-        .background(Color(palette: Palette.canvas).ignoresSafeArea())
+        .background(AmbientBackground().ignoresSafeArea())
         .navigationTitle(topic?.title ?? "")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
