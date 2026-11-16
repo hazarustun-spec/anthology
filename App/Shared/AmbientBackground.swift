@@ -42,10 +42,38 @@ struct AmbientBackground: View {
 }
 
 extension View {
-    /// A content panel floating on the ambient backdrop: Liquid Glass with a light fill for legibility.
-    func glassPanel(cornerRadius: CGFloat = 22, fill: Double = 0.55, tint: Color? = nil) -> some View {
-        self
-            .background(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).fill(Color(palette: Palette.card).opacity(fill)))
-            .glassEffect(tint.map { .regular.tint($0) } ?? .regular, in: .rect(cornerRadius: cornerRadius))
+    /// A panel floating on the ambient backdrop: Liquid Glass with a specular rim, soft depth,
+    /// and a light fill only as strong as legibility needs.
+    func glassPanel(cornerRadius: CGFloat = 22, fill: Double = 0.18, clear: Bool = false, interactive: Bool = false, tint: Color? = nil) -> some View {
+        modifier(GlassPanel(cornerRadius: cornerRadius, fill: fill, clear: clear, tint: tint, interactive: interactive))
+    }
+}
+
+private struct GlassPanel: ViewModifier {
+    let cornerRadius: CGFloat
+    let fill: Double
+    let clear: Bool
+    let tint: Color?
+    let interactive: Bool
+    @Environment(\.colorScheme) private var scheme
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let base: Glass = clear ? .clear : .regular
+        var glass: Glass = tint.map { base.tint($0) } ?? base
+        if interactive { glass = glass.interactive() }
+        return content
+            .background(shape.fill(Color(palette: Palette.card).opacity(fill)))
+            .glassEffect(glass, in: .rect(cornerRadius: cornerRadius))
+            .overlay(
+                // Specular rim: bright on the top-left edge, fading out, like light catching glass.
+                shape.strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(scheme == .dark ? 0.35 : 0.9), .white.opacity(0.05), .white.opacity(scheme == .dark ? 0.12 : 0.35)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing),
+                    lineWidth: 1)
+                .allowsHitTesting(false)
+            )
+            .shadow(color: .black.opacity(scheme == .dark ? 0.35 : 0.10), radius: 18, x: 0, y: 10)
     }
 }

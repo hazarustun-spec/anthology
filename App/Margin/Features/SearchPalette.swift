@@ -13,7 +13,7 @@ struct SearchPalette: View {
         let results = library.search(query)
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(Color(palette: Palette.tertiary))
+                Image(systemName: "magnifyingglass").foregroundStyle(.tertiary)
                 TextField("Search all notes", text: $query)
                     .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
                     .onKeyPress(.downArrow) { selection = min(selection + 1, max(results.count - 1, 0)); return .handled }

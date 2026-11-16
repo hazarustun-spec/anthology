@@ -49,7 +49,7 @@ struct NoteDetail: View {
         .frame(maxWidth: 720, alignment: .leading)
         .padding(.horizontal, 44)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .glassPanel(cornerRadius: 26, fill: 0.55)
+        .glassPanel(cornerRadius: 28, fill: 0.42)
         .padding(.horizontal, 16).padding(.bottom, 16).padding(.top, 6)
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
@@ -64,7 +64,7 @@ struct NoteDetail: View {
     private var conflictBanner: some View {
         HStack(spacing: 10) {
             Image(systemName: "sparkles").foregroundStyle(Color(palette: Palette.accent))
-            Text("Claude updated this note while you were typing.").foregroundStyle(Color(palette: Palette.text))
+            Text("Claude updated this note while you were typing.").foregroundStyle(.primary)
             Spacer()
             Button("Show Claude's version") { load(); conflictRevision = nil }.buttonStyle(.glass)
             Button("Keep mine") {
@@ -82,7 +82,7 @@ struct NoteDetail: View {
     private func removalBanner(_ entry: HistoryEntry) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle").foregroundStyle(Color(palette: Palette.accent))
-            Text("\(entry.by.displayName) removed most of this note.").foregroundStyle(Color(palette: Palette.text))
+            Text("\(entry.by.displayName) removed most of this note.").foregroundStyle(.primary)
             Spacer()
             Button("Undo") {
                 library.restore(noteID: noteID, revision: entry.rev - 1)

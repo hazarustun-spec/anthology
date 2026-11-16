@@ -86,9 +86,9 @@ struct EmptyState: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Image(systemName: symbol).font(.system(size: 26, weight: .light)).foregroundStyle(Color(palette: Palette.tertiary))
-            Text(title).font(.system(size: 15, weight: .medium)).foregroundStyle(Color(palette: Palette.secondary))
-            Text(message).font(.callout).foregroundStyle(Color(palette: Palette.tertiary)).multilineTextAlignment(.center).frame(maxWidth: 260)
+            Image(systemName: symbol).font(.system(size: 26, weight: .light)).foregroundStyle(.tertiary)
+            Text(title).font(.system(size: 15, weight: .medium)).foregroundStyle(.secondary)
+            Text(message).font(.callout).foregroundStyle(.tertiary).multilineTextAlignment(.center).frame(maxWidth: 260)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

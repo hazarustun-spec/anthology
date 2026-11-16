@@ -127,6 +127,7 @@ struct NoteScreen: View {
             if conflictRevision != nil { banner }
             TextField("Title", text: $title, axis: .vertical)
                 .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(Color(palette: Palette.text))
                 .focused($titleFocused)
                 .onSubmit(commitTitle)
                 .onChange(of: titleFocused) { _, f in if !f { commitTitle() } }
@@ -137,7 +138,7 @@ struct NoteScreen: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 14)
-        .glassPanel(cornerRadius: 30, fill: 0.55)
+        .glassPanel(cornerRadius: 32, fill: 0.42)
         .padding(.horizontal, 10)
         .padding(.top, 4)
         .background(AmbientBackground().ignoresSafeArea())

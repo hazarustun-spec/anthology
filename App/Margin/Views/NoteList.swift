@@ -25,20 +25,20 @@ struct NoteList: View {
         let fresh = library.isFresh(note.meta.id)
         let last = library.lastChange(for: note.meta.id)
         VStack(alignment: .leading, spacing: 4) {
-            Text(note.meta.title).font(.system(size: 13, weight: .medium)).foregroundStyle(Color(palette: Palette.text)).lineLimit(1)
+            Text(note.meta.title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Color(palette: Palette.text)).lineLimit(1)
             Text(preview(library.body(for: note.meta.id)))
-                .font(.system(size: 12)).foregroundStyle(Color(palette: Palette.secondary)).lineLimit(2)
+                .font(.system(size: 12)).foregroundStyle(.secondary).lineLimit(2)
             HStack(spacing: 4) {
                 Text(note.meta.updated, format: .relative(presentation: .named))
                 if let last, last.by != .app {
                     Text("·"); Text(last.by.label)
                 }
             }
-            .font(.system(size: 11)).foregroundStyle(Color(palette: fresh ? Palette.accent : Palette.tertiary))
+            .font(.system(size: 11)).foregroundStyle(fresh ? AnyShapeStyle(Color(palette: Palette.accentText)) : AnyShapeStyle(.secondary))
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassPanel(cornerRadius: 16, fill: selected ? 0.6 : 0.22,
+        .glassPanel(cornerRadius: 16, fill: selected ? 0.45 : 0.08, clear: true, interactive: true,
                     tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
             .strokeBorder(Color(palette: Palette.accent).opacity(selected ? 0.55 : 0), lineWidth: 1.2))

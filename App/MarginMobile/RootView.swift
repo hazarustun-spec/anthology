@@ -121,16 +121,18 @@ struct TopicsScreen: View {
                             }
                             .frame(width: 190, height: 92, alignment: .topLeading)
                             .padding(12)
-                            .glassPanel(cornerRadius: 20, fill: 0.3,
+                            .glassPanel(cornerRadius: 20, fill: 0.1, clear: true, interactive: true,
                                         tint: library.isFresh(item.noteID) ? Color(palette: Palette.accent).opacity(0.35) : nil)
                         }
                         .buttonStyle(PressableStyle())
                     }
                 }
                 .padding(.horizontal, 16)
+                .padding(.vertical, 14)
             }
+            .scrollClipDisabled()
         }
-        .padding(.vertical, 12)
+        .padding(.top, 12)
     }
 }
 
@@ -153,7 +155,7 @@ struct TopicTile: View {
         }
         .padding(14)
         .frame(height: 118)
-        .glassPanel(cornerRadius: 24, fill: 0.28)
+        .glassPanel(cornerRadius: 24, fill: 0.1, clear: true, interactive: true)
     }
 }
 
@@ -172,7 +174,7 @@ struct Card<Content: View>: View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
-            .glassPanel(cornerRadius: 20, fill: 0.3, tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
+            .glassPanel(cornerRadius: 20, fill: 0.1, clear: true, interactive: true, tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
     }
 }
 
@@ -195,7 +197,7 @@ struct NotesScreen: View {
                                     Text(note.meta.updated, format: .relative(presentation: .named))
                                     if let last = library.lastChange(for: note.meta.id), last.by != .app { Text("· \(last.by.displayName)") }
                                 }
-                                .font(.caption).foregroundStyle(Color(palette: library.isFresh(note.meta.id) ? Palette.accent : Palette.tertiary))
+                                .font(.caption).foregroundStyle(library.isFresh(note.meta.id) ? AnyShapeStyle(Color(palette: Palette.accentText)) : AnyShapeStyle(.secondary))
                             }
                         }
                     }

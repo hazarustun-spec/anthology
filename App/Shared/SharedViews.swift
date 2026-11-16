@@ -35,7 +35,7 @@ struct SourceBadge: View {
             Image(systemName: "chevron.down").font(.system(size: 9))
         }
         .font(.system(size: 12))
-        .foregroundStyle(Color(palette: Palette.secondary))
+        .foregroundStyle(.secondary)
         .padding(.horizontal, 11).padding(.vertical, 5)
         .background(Capsule().fill(Color(palette: Palette.chip)))
     }
@@ -54,13 +54,13 @@ struct HistoryList: View {
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: e.by.symbol).foregroundStyle(Color(palette: e.by == .app ? Palette.secondary : Palette.accent)).frame(width: 16)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(e.summary).foregroundStyle(Color(palette: Palette.text))
+                            Text(e.summary).foregroundStyle(.primary)
                             HStack(spacing: 4) {
                                 Text(e.by.label)
                                 Text("·")
                                 Text(e.at, format: .dateTime.day().month().hour().minute())
                             }
-                            .font(.system(size: 11)).foregroundStyle(Color(palette: Palette.tertiary))
+                            .font(.system(size: 11)).foregroundStyle(.tertiary)
                         }
                         Spacer(minLength: 6)
                         if e.rev > 1, canRestore(e.rev) {
