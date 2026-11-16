@@ -22,6 +22,7 @@ private struct GeneralSettings: View {
     @AppStorage("appearance") private var appearance: AppearanceChoice = .system
     @AppStorage(AppLock.timeoutKey) private var lockAfter = 5
     @AppStorage(Notifier.enabledKey) private var notify = true
+    @AppStorage(WindowLook.transparentKey) private var transparentWindow = true
     @State private var lockOn = UserDefaults.standard.bool(forKey: AppLock.enabledKey)
     @State private var openAtLogin = SMAppService.mainApp.status == .enabled
     @Environment(AppLock.self) private var lock
@@ -33,6 +34,7 @@ private struct GeneralSettings: View {
                     ForEach(AppearanceChoice.allCases) { Text($0.label).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Toggle("Show the desktop behind the window", isOn: $transparentWindow)
             }
             Section {
                 Toggle("Lock Margin with \(AppLock.biometryName)", isOn: Binding(get: { lockOn }, set: { new in

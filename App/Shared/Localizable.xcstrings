@@ -1429,6 +1429,16 @@
           }
         }
       }
+    },
+    "Show the desktop behind the window": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masaüstünü pencerenin arkasında göster"
+          }
+        }
+      }
     }
   }
 }

@@ -5,6 +5,7 @@ struct LibraryView: View {
     @Environment(LibraryModel.self) private var library
 
     var snapshotLayout = false
+    @AppStorage(WindowLook.transparentKey) private var transparentWindow = true
 
     var body: some View {
         if snapshotLayout {
@@ -66,7 +67,8 @@ struct LibraryView: View {
                     }
                 }
         }
-        .containerBackground(for: .window) { AmbientBackground() }
+        .containerBackground(for: .window) { WindowBackdrop() }
+        .background(WindowConfigurator(transparent: transparentWindow))
     }
 
     @ViewBuilder
