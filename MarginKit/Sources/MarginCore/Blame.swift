@@ -40,7 +40,7 @@ extension MarginStore {
     }
 
     /// For each line of `new`, the index of the matching line in `old` (longest common subsequence).
-    static func lcsMatches(_ old: [String], _ new: [String]) -> [Int?] {
+    public static func lcsMatches(_ old: [String], _ new: [String]) -> [Int?] {
         let n = old.count, m = new.count
         var dp = Array(repeating: Array(repeating: 0, count: m + 1), count: n + 1)
         for i in stride(from: n - 1, through: 0, by: -1) {

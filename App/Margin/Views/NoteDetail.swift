@@ -12,6 +12,7 @@ struct NoteDetail: View {
     @State private var conflictRevision: Int?
     @State private var showHistory = false
     @State private var titleDraft = ""
+    @State private var attribution: [LineAttribution] = []
     @FocusState private var titleFocused: Bool
 
     var body: some View {
@@ -44,7 +45,9 @@ struct NoteDetail: View {
                 }
             }
             .padding(.top, 28).padding(.bottom, 8)
-            NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? []) { _ in scheduleSave() }
+            NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? [], attribution: attribution) { _ in scheduleSave() }
+                // The author gutter sits in the page margin so text stays aligned with the title.
+                .padding(.leading, -AttributionGutter.width)
         }
         .frame(maxWidth: 720, alignment: .leading)
         .padding(.horizontal, 48)
@@ -111,6 +114,7 @@ struct NoteDetail: View {
         titleDraft = library.note(noteID)?.meta.title ?? ""
         text = library.body(for: noteID)
         baseRevision = library.note(noteID)?.meta.revision ?? 0
+        attribution = library.attribution(for: noteID)
         dirty = false
     }
 

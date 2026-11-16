@@ -5,6 +5,48 @@ extension ChangeSource {
     var label: LocalizedStringKey { LocalizedStringKey(displayName) }
 
     var symbol: String { self == .app ? "person" : "sparkles" }
+
+    /// Small per-tool glyph used in the line gutter; nil for the user's own lines (kept unmarked).
+    var lineSymbol: String? {
+        switch self {
+        case .app: nil
+        case .claudeCode: "terminal"
+        case .cowork: "sparkles"
+        case .gemini: "sparkle"
+        case .cursor: "cursorarrow"
+        case .vscode: "curlybraces"
+        case .codex: "hexagon"
+        }
+    }
+}
+
+/// Per-line authorship for the editor, aligned to the editor's current lines.
+enum LineAuthors {
+    /// Maps saved attribution onto `text`'s lines; lines not in the saved version (fresh typing) get nil.
+    static func align(_ attribution: [LineAttribution], to text: String) -> [LineAttribution?] {
+        let lines = text.components(separatedBy: "\n")
+        guard !attribution.isEmpty, lines.count < 3000, attribution.count < 3000 else {
+            return Array(repeating: nil, count: lines.count)
+        }
+        let matches = MarginStore.lcsMatches(attribution.map(\.text), lines)
+        return matches.map { $0.map { attribution[$0] } }
+    }
+
+    /// Icon strength fades with age: recent changes stand out, old ones recede.
+    static func opacity(for date: Date?, now: Date = .now) -> Double {
+        guard let date else { return 0.35 }
+        let age = now.timeIntervalSince(date)
+        if age < 86_400 { return 0.9 }
+        if age < 7 * 86_400 { return 0.6 }
+        return 0.35
+    }
+
+    static func tooltip(_ a: LineAttribution, now: Date = .now) -> String {
+        let who = a.source?.displayName ?? String(localized: "Unknown")
+        guard let date = a.date else { return who }
+        let when = RelativeDateTimeFormatter().localizedString(for: date, relativeTo: now)
+        return "\(who) · \(when)"
+    }
 }
 
 extension ChangeSource {

@@ -99,6 +99,11 @@ final class LibraryModel {
             ?? (try? store?.history(noteID: noteID).last) ?? nil
     }
 
+    /// Who wrote each saved line of the note and when (empty when unknown).
+    func attribution(for noteID: String) -> [LineAttribution] {
+        (try? store?.lineAttribution(noteID: noteID)) ?? []
+    }
+
     func history(for noteID: String) -> [HistoryEntry] {
         ((try? store?.history(noteID: noteID)) ?? []).reversed()
     }

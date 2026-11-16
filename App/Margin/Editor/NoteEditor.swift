@@ -1,4 +1,5 @@
 import AppKit
+import MarginCore
 import SwiftUI
 
 /// NSTextView with clickable Markdown checkboxes.
@@ -29,6 +30,7 @@ final class MarkdownTextView: NSTextView {
 struct NoteEditor: NSViewRepresentable {
     @Binding var text: String
     var freshLines: Set<String>
+    var attribution: [LineAttribution] = []
     var onEdit: (String) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -62,6 +64,12 @@ struct NoteEditor: NSViewRepresentable {
         textView.typingAttributes = context.coordinator.styler.baseAttributes
         textView.delegate = context.coordinator
         scroll.documentView = textView
+        let gutter = AttributionGutter(scrollView: scroll)
+        gutter.clientView = textView
+        scroll.verticalRulerView = gutter
+        scroll.hasVerticalRuler = true
+        scroll.rulersVisible = true
+        context.coordinator.gutter = gutter
         context.coordinator.textView = textView
         context.coordinator.load(text, fresh: freshLines)
         return scroll
@@ -73,6 +81,10 @@ struct NoteEditor: NSViewRepresentable {
         if textView.string != text || context.coordinator.styler.freshLines != freshLines {
             context.coordinator.load(text, fresh: freshLines)
         }
+        if context.coordinator.attribution != attribution {
+            context.coordinator.attribution = attribution
+            context.coordinator.realignAuthors()
+        }
     }
 
     @MainActor
@@ -80,6 +92,8 @@ struct NoteEditor: NSViewRepresentable {
         var parent: NoteEditor
         let styler = MarkdownStyler()
         weak var textView: MarkdownTextView?
+        weak var gutter: AttributionGutter?
+        var attribution: [LineAttribution] = []
         private var loading = false
 
         init(_ parent: NoteEditor) { self.parent = parent }
@@ -96,12 +110,19 @@ struct NoteEditor: NSViewRepresentable {
             let length = (text as NSString).length
             textView.selectedRanges = selection.map { NSValue(range: NSRange(location: min($0.rangeValue.location, length), length: 0)) }
             loading = false
+            realignAuthors()
+        }
+
+        func realignAuthors() {
+            guard let textView else { return }
+            gutter?.authors = LineAuthors.align(attribution, to: textView.string)
         }
 
         func textDidChange(_ notification: Notification) {
             guard !loading, let textView else { return }
             parent.text = textView.string
             parent.onEdit(textView.string)
+            realignAuthors()
         }
     }
 }
