@@ -5,7 +5,7 @@ struct LibraryView: View {
     @Environment(LibraryModel.self) private var library
 
     var snapshotLayout = false
-    @AppStorage(WindowLook.transparentKey) private var transparentWindow = true
+    @AppStorage(WindowLook.transparentKey) private var transparentWindow = false
 
     var body: some View {
         if snapshotLayout {

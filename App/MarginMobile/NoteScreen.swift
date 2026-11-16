@@ -149,11 +149,8 @@ struct NoteScreen: View {
             MobileNoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? []) { scheduleSave() }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 14)
-        .glassPanel(cornerRadius: 32, fill: 0.25)
-        .padding(.horizontal, 10)
-        .padding(.top, 4)
-        .background(AmbientBackground().ignoresSafeArea())
+        .padding(.top, 8)
+        .background(Color(palette: Palette.card).ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

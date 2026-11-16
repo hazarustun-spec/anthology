@@ -50,17 +50,14 @@ struct WindowConfigurator: NSViewRepresentable {
 
 /// The window backdrop: transparent (desktop blur + faint ambient tint) or the opaque ambient mesh.
 struct WindowBackdrop: View {
-    @AppStorage(WindowLook.transparentKey) private var transparent = true
+    @AppStorage(WindowLook.transparentKey) private var transparent = false
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         if transparent && !reduceTransparency {
-            ZStack {
-                BehindWindowBlur()
-                AmbientBackground().opacity(0.32)
-            }
+            BehindWindowBlur()
         } else {
-            AmbientBackground()
+            Color(palette: Palette.canvas)
         }
     }
 }

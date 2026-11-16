@@ -7,12 +7,10 @@ struct NoteList: View {
     var body: some View {
         let notes = library.notes(for: library.selectedTopicID)
         ScrollView {
-            GlassEffectContainer(spacing: 2) {
-            LazyVStack(alignment: .leading, spacing: 8) {
+            LazyVStack(alignment: .leading, spacing: 6) {
                 ForEach(notes, id: \.meta.id) { note in row(note) }
             }
             .padding(.horizontal, 12).padding(.vertical, 12)
-            }
         }
         .scrollEdgeEffectStyle(.hard, for: .top)
         .overlay { if notes.isEmpty { EmptyState(symbol: "tray", title: "No notes yet", message: "Notes Claude saves from this folder appear here.") } }
@@ -38,11 +36,7 @@ struct NoteList: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassPanel(cornerRadius: 16, fill: selected ? 0.3 : 0.0, clear: true, interactive: true,
-                    tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .strokeBorder(Color(palette: Palette.accent).opacity(selected ? 0.55 : 0), lineWidth: 1.2))
-        .contentShape(.rect(cornerRadius: 16))
+        .card(cornerRadius: 10, selected: selected, fresh: fresh)
         .contentShape(Rectangle())
         .onTapGesture { library.selectedNoteID = note.meta.id }
         .draggable(note.meta.id) {

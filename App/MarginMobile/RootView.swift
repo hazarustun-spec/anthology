@@ -84,7 +84,6 @@ struct TopicsScreen: View {
                 .padding(.horizontal, 16)
             } else {
                 if !library.activity.isEmpty { recent }
-                GlassEffectContainer(spacing: 2) {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                     ForEach(library.topics) { topic in
                         Button { open(.topic(topic.id)); Haptics.tap() } label: { TopicTile(topic: topic) }
@@ -93,11 +92,10 @@ struct TopicsScreen: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
-                }
             }
         }
         .scrollEdgeEffectStyle(.soft, for: .all)
-        .background(AmbientBackground().ignoresSafeArea())
+        .background(Color(palette: Palette.canvas).ignoresSafeArea())
         .overlay {
             if library.topics.isEmpty {
                 ContentUnavailableView("No notes yet", systemImage: "sparkles",
@@ -122,8 +120,7 @@ struct TopicsScreen: View {
                             }
                             .frame(width: 190, height: 92, alignment: .topLeading)
                             .padding(12)
-                            .glassPanel(cornerRadius: 20, fill: 0.0, clear: true, interactive: true,
-                                        tint: library.isFresh(item.noteID) ? Color(palette: Palette.accent).opacity(0.35) : nil)
+                            .card(cornerRadius: 14, fresh: library.isFresh(item.noteID))
                         }
                         .buttonStyle(PressableStyle())
                     }
@@ -156,7 +153,7 @@ struct TopicTile: View {
         }
         .padding(14)
         .frame(height: 118)
-        .glassPanel(cornerRadius: 24, fill: 0.0, clear: true, interactive: true)
+        .card(cornerRadius: 14)
     }
 }
 
@@ -175,7 +172,7 @@ struct Card<Content: View>: View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(14)
-            .glassPanel(cornerRadius: 20, fill: 0.0, clear: true, interactive: true, tint: fresh ? Color(palette: Palette.accent).opacity(0.35) : nil)
+            .card(cornerRadius: 14, fresh: fresh)
     }
 }
 
@@ -219,7 +216,7 @@ struct NotesScreen: View {
             .animation(.spring(duration: 0.4), value: library.freshNotes)
         }
         .scrollEdgeEffectStyle(.soft, for: .all)
-        .background(AmbientBackground().ignoresSafeArea())
+        .background(Color(palette: Palette.canvas).ignoresSafeArea())
         .navigationTitle(topic?.title ?? "")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

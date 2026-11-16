@@ -47,10 +47,9 @@ struct NoteDetail: View {
             NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? []) { _ in scheduleSave() }
         }
         .frame(maxWidth: 720, alignment: .leading)
-        .padding(.horizontal, 44)
+        .padding(.horizontal, 48)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .glassPanel(cornerRadius: 28, fill: 0.25)
-        .padding(.horizontal, 16).padding(.bottom, 16).padding(.top, 6)
+        .background(Color(palette: Palette.card))
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
         .onChange(of: library.note(noteID)?.meta.title) { _, new in

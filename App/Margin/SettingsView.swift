@@ -22,7 +22,7 @@ private struct GeneralSettings: View {
     @AppStorage("appearance") private var appearance: AppearanceChoice = .system
     @AppStorage(AppLock.timeoutKey) private var lockAfter = 5
     @AppStorage(Notifier.enabledKey) private var notify = true
-    @AppStorage(WindowLook.transparentKey) private var transparentWindow = true
+    @AppStorage(WindowLook.transparentKey) private var transparentWindow = false
     @State private var lockOn = UserDefaults.standard.bool(forKey: AppLock.enabledKey)
     @State private var openAtLogin = SMAppService.mainApp.status == .enabled
     @Environment(AppLock.self) private var lock

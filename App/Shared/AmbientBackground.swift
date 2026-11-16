@@ -71,3 +71,16 @@ private struct GlassPanel: ViewModifier {
             .shadow(color: .black.opacity(scheme == .dark ? 0.35 : 0.10), radius: 18, x: 0, y: 10)
     }
 }
+
+
+extension View {
+    /// Plain, professional content card: solid surface, hairline border, selection/fresh states.
+    func card(cornerRadius: CGFloat = 12, selected: Bool = false, fresh: Bool = false) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        return self
+            .background(shape.fill(Color(palette: fresh ? Palette.accentWash : Palette.card)))
+            .overlay(shape.strokeBorder(Color(palette: selected ? Palette.accent : Palette.hairline),
+                                        lineWidth: selected ? 1.5 : 0.5))
+            .contentShape(shape)
+    }
+}
