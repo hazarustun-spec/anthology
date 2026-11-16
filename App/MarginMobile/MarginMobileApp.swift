@@ -64,10 +64,10 @@ struct MobileLockView: View {
             Image(systemName: "faceid").font(.system(size: 52, weight: .light)).foregroundStyle(Color(palette: Palette.accent))
                 .symbolEffect(.pulse, options: .repeating)
             Text("Margin is locked").font(.title3.weight(.semibold))
-            Button("Unlock") { lock.unlock() }.buttonStyle(.borderedProminent).controlSize(.large)
+            Button("Unlock") { lock.unlock() }.buttonStyle(.glassProminent).controlSize(.large)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
+        .background(.regularMaterial)
         .onAppear { lock.unlock() }
     }
 }

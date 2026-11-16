@@ -27,6 +27,7 @@ struct MarginApp: App {
                 .environment(library)
                 .environment(lock)
                 .frame(minWidth: 900, minHeight: 560)
+                .tint(Color(palette: Palette.accent))
                 .overlay { if lock.isLocked { LockView(lock: lock).transition(.opacity) } }
                 .animation(.easeInOut(duration: 0.25), value: lock.isLocked)
                 .sheet(isPresented: Binding(get: { !onboarded && !lock.isLocked && Snapshot.request == nil }, set: { if !$0 { onboarded = true } })) {
@@ -34,7 +35,7 @@ struct MarginApp: App {
                 }
                 .preferredColorScheme(appearance.colorScheme)
         }
-        .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(.unified)
         .defaultSize(width: 1180, height: 740)
         .commands {
             CommandGroup(after: .newItem) {

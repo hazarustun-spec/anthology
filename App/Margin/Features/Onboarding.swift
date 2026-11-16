@@ -33,7 +33,7 @@ struct OnboardingView: View {
             .clipped()
 
             HStack {
-                Button("Skip") { finish() }.buttonStyle(.plain).foregroundStyle(.secondary)
+                Button("Skip") { finish() }.buttonStyle(.glass)
                     .opacity(step < count - 1 ? 1 : 0)
                 Spacer()
                 HStack(spacing: 6) {
@@ -46,19 +46,18 @@ struct OnboardingView: View {
                 Spacer()
                 HStack(spacing: 8) {
                     if step > 0 {
-                        Button("Back") { go(-1) }.buttonStyle(.bordered)
+                        Button("Back") { go(-1) }.buttonStyle(.glass)
                     }
                     Button(step == count - 1 ? "Start using Margin" : "Continue") {
                         step == count - 1 ? finish() : go(1)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                     .keyboardShortcut(.defaultAction)
                 }
             }
             .padding(20)
         }
         .frame(width: 720, height: 520)
-        .background(Color(palette: Palette.canvas))
         .tint(Color(palette: Palette.accent))
     }
 

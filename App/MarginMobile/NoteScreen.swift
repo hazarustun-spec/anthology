@@ -150,7 +150,7 @@ struct NoteScreen: View {
                         ShareLink(item: "# \(note.meta.title)\n\n\(text)") { Label("Share", systemImage: "square.and.arrow.up") }
                         Button("History", systemImage: "clock.arrow.circlepath") { showHistory = true }
                     }
-                } label: { Image(systemName: "ellipsis.circle") }
+                } label: { Image(systemName: "ellipsis") }
             }
         }
         .sheet(isPresented: $showHistory) {
@@ -186,10 +186,10 @@ struct NoteScreen: View {
                     save()
                 }
             }
-            .buttonStyle(.bordered).font(.footnote)
+            .buttonStyle(.glass).font(.footnote)
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(palette: Palette.accentWash)))
+        .padding(14)
+        .glassEffect(.regular, in: .rect(cornerRadius: 22))
     }
 
     private func load() {

@@ -12,6 +12,7 @@ struct RootView: View {
     @State private var search = ""
     @State private var showCapture = false
     @State private var showSettings = false
+    @Namespace private var glass
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -19,12 +20,18 @@ struct RootView: View {
                 .navigationTitle("Margin")
                 .searchable(text: $search, prompt: Text("Search all notes"))
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button { showSettings = true } label: { Image(systemName: "gearshape") }
                     }
-                    ToolbarItem(placement: .topBarTrailing) {
+                    // Notes / Craft pattern: search field and a prominent compose button share the bottom bar.
+                    DefaultToolbarItem(kind: .search, placement: .bottomBar)
+                    ToolbarSpacer(.fixed, placement: .bottomBar)
+                    ToolbarItem(placement: .bottomBar) {
                         Button { showCapture = true; Haptics.tap() } label: { Image(systemName: "square.and.pencil") }
+                            .buttonStyle(.glassProminent)
+                            .tint(Color(palette: Palette.accent))
                     }
+                    .matchedTransitionSource(id: "capture", in: glass)
                 }
                 .navigationDestination(for: Route.self) { route in
                     switch route {
@@ -33,7 +40,11 @@ struct RootView: View {
                     }
                 }
         }
-        .sheet(isPresented: $showCapture) { CaptureSheet().presentationDetents([.height(300), .medium]) }
+        .sheet(isPresented: $showCapture) {
+            CaptureSheet()
+                .presentationDetents([.height(300), .medium])
+                .navigationTransition(.zoom(sourceID: "capture", in: glass))
+        }
         #if DEBUG
         .task {
             // Screenshot helper: `-openNote <id>` pushes a note on launch (debug builds only).
@@ -82,7 +93,8 @@ struct TopicsScreen: View {
                 .padding(.bottom, 24)
             }
         }
-        .background(Color(palette: Palette.canvas))
+        .scrollEdgeEffectStyle(.soft, for: .all)
+        .background(Color(palette: Palette.canvas).ignoresSafeArea())
         .overlay {
             if library.topics.isEmpty {
                 ContentUnavailableView("No notes yet", systemImage: "sparkles",
@@ -203,7 +215,8 @@ struct NotesScreen: View {
             .padding(16)
             .animation(.spring(duration: 0.4), value: library.freshNotes)
         }
-        .background(Color(palette: Palette.canvas))
+        .scrollEdgeEffectStyle(.soft, for: .all)
+        .background(Color(palette: Palette.canvas).ignoresSafeArea())
         .navigationTitle(topic?.title ?? "")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

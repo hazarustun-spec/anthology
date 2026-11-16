@@ -30,11 +30,6 @@ struct NoteDetail: View {
                         .focused($titleFocused)
                         .onSubmit { commitTitle() }
                         .onChange(of: titleFocused) { _, focused in if !focused { commitTitle() } }
-                    if let note {
-                        Menu { NoteMenu(note: note) } label: { Image(systemName: "ellipsis.circle") }
-                            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                            .foregroundStyle(Color(palette: Palette.secondary))
-                    }
                 }
                 if let last = library.lastChange(for: noteID) {
                     Button { showHistory.toggle() } label: { SourceBadge(entry: last) }
@@ -51,16 +46,11 @@ struct NoteDetail: View {
             .padding(.top, 28).padding(.bottom, 8)
             NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? []) { _ in scheduleSave() }
         }
-        .frame(maxWidth: 700, alignment: .leading)
-        .padding(.horizontal, 40)
+        .frame(maxWidth: 720, alignment: .leading)
+        .padding(.horizontal, 48)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(palette: Palette.card))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color(palette: Palette.hairline), lineWidth: 0.5))
-        )
-        .padding(14)
-        .background(Color(palette: Palette.canvas))
+        .background(Color(palette: Palette.card))
+        .scrollEdgeEffectStyle(.hard, for: .top)
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
         .onDisappear { flush() }
@@ -76,7 +66,7 @@ struct NoteDetail: View {
             Image(systemName: "sparkles").foregroundStyle(Color(palette: Palette.accent))
             Text("Claude updated this note while you were typing.").foregroundStyle(Color(palette: Palette.text))
             Spacer()
-            Button("Show Claude's version") { load(); conflictRevision = nil }
+            Button("Show Claude's version") { load(); conflictRevision = nil }.buttonStyle(.glass)
             Button("Keep mine") {
                 if let rev = conflictRevision { baseRevision = rev }
                 conflictRevision = nil
@@ -84,8 +74,8 @@ struct NoteDetail: View {
             }
         }
         .font(.system(size: 12))
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color(palette: Palette.accentWash)))
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .glassEffect(.regular, in: .capsule)
         .padding(.top, 16)
     }
 
@@ -100,8 +90,8 @@ struct NoteDetail: View {
             }
         }
         .font(.system(size: 12))
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color(palette: Palette.accentWash)))
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .glassEffect(.regular, in: .capsule)
         .padding(.top, 16)
     }
 

@@ -135,7 +135,7 @@ struct ConnectionRow: View {
                 Text("Config file unreadable").font(.system(size: 12)).foregroundStyle(.orange)
             } else {
                 Button(status == .differentBinary ? "Update" : "Connect") { connection.connect(client) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
             }
         }
         .padding(.vertical, 3)

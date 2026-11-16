@@ -14,15 +14,14 @@ struct LockView: View {
             Button { lock.unlock() } label: {
                 Text("Unlock with \(AppLock.biometryName)").frame(minWidth: 180)
             }
-            .buttonStyle(.borderedProminent).tint(Color(palette: Palette.accent)).controlSize(.large)
+            .buttonStyle(.glassProminent).tint(Color(palette: Palette.accent)).controlSize(.large)
             .keyboardShortcut(.defaultAction)
             if lock.failed {
                 Text("Couldn't verify. Try again.").font(.callout).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
-        .background(Color(palette: Palette.canvas))
+        .background(.regularMaterial)
         .onAppear { appeared = true; lock.unlock() }
     }
 }

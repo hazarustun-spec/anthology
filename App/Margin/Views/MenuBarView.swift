@@ -42,13 +42,13 @@ struct MenuBarView: View {
             Divider().overlay(Color(palette: Palette.hairline))
             HStack {
                 Button("Open Margin") { openWindow(id: "library"); NSApp.activate() }
+                    .buttonStyle(.glassProminent).tint(Color(palette: Palette.accent))
                 Spacer()
-                SettingsLink { Text("Settings…") }
+                SettingsLink { Text("Settings…") }.buttonStyle(.glass)
             }
-            .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Color(palette: Palette.secondary))
+            .controlSize(.small).font(.system(size: 12))
             .padding(12)
         }
         .frame(width: 340)
-        .background(Color(palette: Palette.canvas))
     }
 }

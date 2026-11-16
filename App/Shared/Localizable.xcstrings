@@ -1389,6 +1389,46 @@
           }
         }
       }
+    },
+    "More": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diğer"
+          }
+        }
+      }
+    },
+    "Search all notes (⌘K)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm notlarda ara (⌘K)"
+          }
+        }
+      }
+    },
+    "Quick note (⌥⌘M)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı not (⌥⌘M)"
+          }
+        }
+      }
+    },
+    "New note (⌘N)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni not (⌘N)"
+          }
+        }
+      }
     }
   }
 }

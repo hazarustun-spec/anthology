@@ -2,8 +2,8 @@ name: Margin
 options:
   bundleIdPrefix: com.marginnotes
   deploymentTarget:
-    macOS: "15.0"
-    iOS: "18.0"
+    macOS: "26.0"
+    iOS: "26.0"
   createIntermediateGroups: true
   developmentLanguage: en
 configFiles:

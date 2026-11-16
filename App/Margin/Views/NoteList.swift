@@ -8,21 +8,11 @@ struct NoteList: View {
         let notes = library.notes(for: library.selectedTopicID)
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 4) {
-                if let topic = library.topics.first(where: { $0.id == library.selectedTopicID }) {
-                    HStack {
-                        Text(topic.title).font(.system(size: 17, weight: .semibold)).foregroundStyle(Color(palette: Palette.text))
-                        Spacer()
-                        Button { library.createNote(in: topic.id) } label: { Image(systemName: "square.and.pencil") }
-                            .buttonStyle(.plain).foregroundStyle(Color(palette: Palette.secondary)).help("New note")
-                    }
-                    .padding(.horizontal, 10).padding(.bottom, 8)
-                }
                 ForEach(notes, id: \.meta.id) { note in row(note) }
             }
-            .padding(.horizontal, 10).padding(.top, 14)
+            .padding(.horizontal, 10).padding(.vertical, 10)
         }
-        .scrollContentBackground(.hidden)
-        .background(Color(palette: Palette.list))
+        .scrollEdgeEffectStyle(.hard, for: .top)
         .overlay { if notes.isEmpty { EmptyState(symbol: "tray", title: "No notes yet", message: "Notes Claude saves from this folder appear here.") } }
         .animation(.easeOut(duration: 0.5), value: library.freshNotes)
     }
