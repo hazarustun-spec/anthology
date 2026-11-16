@@ -53,6 +53,7 @@ struct LibraryView: View {
                 .toolbar {
                     ToolbarSpacer(.flexible, placement: .primaryAction)
                     ToolbarItemGroup(placement: .primaryAction) {
+                        AppearanceToggle()
                         Button { QuickCaptureController.shared.show() } label: { Label("Quick Note", systemImage: "text.append") }
                             .help("Quick note (⌥⌘M)")
                         Button { library.showSearch = true } label: { Label("Search Notes", systemImage: "magnifyingglass") }

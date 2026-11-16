@@ -20,7 +20,8 @@ struct RootView: View {
                 .navigationTitle("Margin")
                 .searchable(text: $search, prompt: Text("Search all notes"))
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        AppearanceToggle()
                         Button { showSettings = true } label: { Image(systemName: "gearshape") }
                     }
                     // Notes / Craft pattern: search field and a prominent compose button share the bottom bar.

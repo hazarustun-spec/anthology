@@ -1439,6 +1439,46 @@
           }
         }
       }
+    },
+    "Light Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık Mod"
+          }
+        }
+      }
+    },
+    "Dark Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koyu Mod"
+          }
+        }
+      }
+    },
+    "Switch to light mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık moda geç"
+          }
+        }
+      }
+    },
+    "Switch to dark mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koyu moda geç"
+          }
+        }
+      }
     }
   }
 }

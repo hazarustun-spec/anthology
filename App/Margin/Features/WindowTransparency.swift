@@ -41,8 +41,9 @@ struct WindowConfigurator: NSViewRepresentable {
         }
         func apply() {
             guard let window else { return }
-            window.isOpaque = !transparent
-            window.backgroundColor = transparent ? .clear : .windowBackgroundColor
+            // Always clear: the backdrop view (opaque ambient or see-through blur) paints the window.
+            window.isOpaque = false
+            window.backgroundColor = .clear
         }
     }
 }

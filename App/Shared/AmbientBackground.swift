@@ -15,6 +15,7 @@ struct AmbientBackground: View {
                 let t = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
                 MeshGradient(width: 3, height: 3, points: points(t), colors: colors)
                     .overlay(scheme == .dark ? Color.black.opacity(0.18) : Color.white.opacity(0.0))
+                    .overlay(Caustics())
             }
         }
     }
@@ -56,24 +57,30 @@ private struct GlassPanel: ViewModifier {
     let tint: Color?
     let interactive: Bool
     @Environment(\.colorScheme) private var scheme
+    @State private var hover: UnitPoint?
+    @State private var size: CGSize = .zero
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         let base: Glass = clear ? .clear : .regular
         var glass: Glass = tint.map { base.tint($0) } ?? base
         if interactive { glass = glass.interactive() }
+        // Layering (back to front): glass → light fill → sheen → content → rim.
         return content
+            .background(SpecularSheen(shape: shape, hover: hover).clipShape(shape))
             .background(shape.fill(Color(palette: Palette.card).opacity(fill)))
             .glassEffect(glass, in: .rect(cornerRadius: cornerRadius))
-            .overlay(
-                // Specular rim: bright on the top-left edge, fading out, like light catching glass.
-                shape.strokeBorder(
-                    LinearGradient(
-                        colors: [.white.opacity(scheme == .dark ? 0.35 : 0.9), .white.opacity(0.05), .white.opacity(scheme == .dark ? 0.12 : 0.35)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1)
-                .allowsHitTesting(false)
-            )
+            .overlay(SpecularRim(shape: shape, hover: hover))
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            #if os(macOS)
+            .onContinuousHover { phase in
+                switch phase {
+                case .active(let loc):
+                    hover = UnitPoint(x: loc.x / max(size.width, 1), y: loc.y / max(size.height, 1))
+                case .ended: hover = nil
+                }
+            }
+            #endif
             .shadow(color: .black.opacity(scheme == .dark ? 0.35 : 0.10), radius: 18, x: 0, y: 10)
     }
 }
