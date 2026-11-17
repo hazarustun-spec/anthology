@@ -116,6 +116,25 @@ struct ClientConfigTests {
         #expect((root["servers"] as! [String: Any]).keys.sorted() == ["anthology", "other"])
     }
 
+    @Test func codexHeaderWithCommentIsReplacedNotDuplicated() throws {
+        let url = tempRoot().appendingPathComponent("config.toml")
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try "model = \"x\"\n\n[ mcp_servers.anthology ] # mine\ncommand = \"/old\"\n".write(to: url, atomically: true, encoding: .utf8)
+        try CodexConfig.install(at: url, command: "/new", args: [])
+        let text = try String(contentsOf: url, encoding: .utf8)
+        #expect(text.components(separatedBy: "mcp_servers.anthology").count == 2)
+        #expect(text.contains("command = \"/new\""))
+        #expect(!text.contains("/old"))
+    }
+
+    @Test func codexUnreadableFileIsNotOverwritten() throws {
+        let url = tempRoot().appendingPathComponent("config.toml")
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data([0xFF, 0xFE, 0x00, 0xC3]).write(to: url)
+        #expect(throws: (any Error).self) { try CodexConfig.install(at: url, command: "/new", args: []) }
+        #expect(try Data(contentsOf: url) == Data([0xFF, 0xFE, 0x00, 0xC3]))
+    }
+
     @Test func codexTomlInstallReplaceRemove() throws {
         let original = "model = \"o3\"\n\n[mcp_servers.other]\ncommand = \"x\"\n\n[profiles.fast]\nmodel = \"mini\"\n"
         let url = try file("config.toml", original)

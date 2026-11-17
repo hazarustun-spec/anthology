@@ -13,8 +13,19 @@ func log(_ message: String) {
 // `anthology-mcp hook`: Claude Code UserPromptSubmit hook (reads the event JSON on stdin).
 if CommandLine.arguments.dropFirst().first == "hook" {
     let input = FileHandle.standardInput.readDataToEndOfFile()
-    guard let store = try? MarginStore(root: MarginPaths.defaultRoot()) else { exit(0) }
-    let handler = HookHandler(store: store, settings: MarginSettings.load(), quickNoteTitle: MarginTools.quickNoteTitle)
+    let settings = MarginSettings.load()
+    guard let store = try? MarginStore(root: MarginPaths.defaultRoot()) else {
+        // An instant capture must never reach the model, even when the notes folder can't be opened.
+        if let object = try? JSONSerialization.jsonObject(with: input) as? [String: Any],
+           let prompt = object["prompt"] as? String, case .instant = settings.classify(prompt),
+           let output = try? JSONSerialization.data(withJSONObject: [
+               "decision": "block", "reason": "Anthology couldn't open your notes folder, so this wasn't saved.",
+           ]) {
+            FileHandle.standardOutput.write(output)
+        }
+        exit(0)
+    }
+    let handler = HookHandler(store: store, settings: settings, quickNoteTitle: MarginTools.quickNoteTitle)
     if let output = handler.handle(input) { FileHandle.standardOutput.write(output) }
     exit(0)
 }
@@ -37,7 +48,7 @@ do {
     tools = MarginTools(
         store: try MarginStore(root: root), source: source,
         defaultProjectPath: FileManager.default.currentDirectoryPath,
-        settings: MarginSettings.load()
+        liveSettings: { MarginSettings.load() }
     )
 } catch {
     log("cannot open notes folder \(root.path): \(error)")

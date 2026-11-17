@@ -112,10 +112,16 @@ public enum CodexConfig {
         "\"" + s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
     }
 
+    /// True for `[mcp_servers.anthology]`, also with spaces inside the brackets or a trailing `# comment`.
+    static func isHeader(_ line: String) -> Bool {
+        let code = line.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? ""
+        return code.filter { !$0.isWhitespace } == header
+    }
+
     /// Splits the file into (before, ourTable, after) by the `[mcp_servers.anthology]` header.
     static func split(_ text: String) -> (String, String?, String) {
         var lines = text.components(separatedBy: "\n")
-        guard let start = lines.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces) == header }) else { return (text, nil, "") }
+        guard let start = lines.firstIndex(where: { isHeader($0) }) else { return (text, nil, "") }
         var end = start + 1
         while end < lines.count, !lines[end].trimmingCharacters(in: .whitespaces).hasPrefix("[") { end += 1 }
         let before = lines[..<start].joined(separator: "\n")
@@ -133,7 +139,8 @@ public enum CodexConfig {
 
     public static func install(at link: URL = defaultURL, command: String, args: [String]) throws {
         let url = link.resolvingSymlinksInPath()
-        let text = (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+        // A file that exists but can't be read as UTF-8 is left alone rather than overwritten.
+        let text = FileManager.default.fileExists(atPath: url.path) ? try String(contentsOf: url, encoding: .utf8) : ""
         try MCPConfigFile.backup(url)
         let table = header + "\ncommand = \(tomlString(command))\nargs = [\(args.map(tomlString).joined(separator: ", "))]\n"
         let (before, existing, after) = split(text)

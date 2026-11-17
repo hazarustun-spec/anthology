@@ -1,5 +1,6 @@
-# Homebrew cask for Anthology. Lives in the tap repo hazarustun-spec/homebrew-anthology as Casks/anthology.rb:
-#   brew install --cask hazarustun-spec/anthology/anthology
+# Homebrew cask for Anthology. This repository doubles as its tap:
+#   brew tap hazarustun-spec/anthology https://github.com/hazarustun-spec/anthology
+#   brew install --cask anthology
 cask "anthology" do
   version :latest
   sha256 :no_check

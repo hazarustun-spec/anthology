@@ -11,3 +11,6 @@ App/Local.xcconfig
 App/Margin/Info.plist
 App/MarginMobile/Info.plist
 build/
+
+design/icon/ref/
+design/icon/figma/

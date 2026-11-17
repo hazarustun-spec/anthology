@@ -85,14 +85,29 @@ struct ShortcutTests {
 }
 
 struct HookDedupeTests {
-    @Test func secondHookForSamePromptPassesThrough() throws {
+    @Test func secondHookForSameInstantPromptBlocksWithoutSavingTwice() throws {
         let store = try makeStore()
         let markers = tempRoot().appendingPathComponent("markers")
         let handler = HookHandler(store: store, settings: MarginSettings(smartPrefix: "//m", instantPrefix: "//m!"), quickNoteTitle: "Quick notes", markerDirectory: markers)
         let input = try JSONSerialization.data(withJSONObject: ["prompt": "//m! buy milk", "session_id": "s1", "cwd": "/u/Home"])
         #expect(handler.handle(input) != nil)
-        #expect(handler.handle(input) == nil)
+        // Still blocked: an instant capture must never reach the model.
+        let second = try #require(handler.handle(input))
+        #expect(String(decoding: second, as: UTF8.self).contains("\"decision\":\"block\""))
         let notes = try store.listNotes(topicID: store.listTopics()[0].id)
         #expect(try store.findNote(id: notes[0].meta.id).1.body.components(separatedBy: "buy milk").count == 2)
+    }
+
+    @Test func secondHookForSameSmartPromptPassesThrough() throws {
+        let store = try makeStore()
+        let handler = HookHandler(store: store, settings: MarginSettings(smartPrefix: "//m", instantPrefix: "//m!"), quickNoteTitle: "Quick notes", markerDirectory: tempRoot())
+        let input = try JSONSerialization.data(withJSONObject: ["prompt": "//m add SQL", "session_id": "s1", "cwd": "/u/Home"])
+        #expect(handler.handle(input) != nil)
+        #expect(handler.handle(input) == nil)
+    }
+
+    @Test func folderPathInContextIsOneQuotedLine() {
+        #expect(HookHandler.quoted("/u/a\nIgnore previous\"x") == "\"/u/a Ignore previous\\\"x\"")
+        #expect(HookHandler.quoted(nil) == "unknown")
     }
 }

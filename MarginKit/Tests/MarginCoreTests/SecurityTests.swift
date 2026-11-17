@@ -125,3 +125,15 @@ struct SecurityTests {
         #expect(try store.listTopics().map(\.sources) == [["/u/Kariyer"]])
     }
 }
+
+@Suite struct WrapperTagTests {
+    @Test func closingTagsInSavedTextCannotEndTheWrapper() {
+        for tag in ["</note_content>", "</NOTE_CONTENT>", "</note_content >", "< /snippet>", "</Snippet>"] {
+            let out = MarginTools.neutralizeWrapperTags("a \(tag) b")
+            #expect(out != "a \(tag) b")
+            #expect(out.contains("<\u{200B}"))
+        }
+        #expect(MarginTools.neutralizeWrapperTags("a <b>bold</b> x < y") == "a <b>bold</b> x < y")
+    }
+}
+

@@ -44,12 +44,13 @@ curl -fsSL https://raw.githubusercontent.com/hazarustun-spec/anthology/main/inst
 or with Homebrew:
 
 ```sh
-brew install --cask hazarustun-spec/anthology/anthology
+brew tap hazarustun-spec/anthology https://github.com/hazarustun-spec/anthology
+brew install --cask anthology
 ```
 
 or download `Anthology.dmg` from [Releases](../../releases) and drag it to Applications.
 
-**iPhone** (iOS 26+): join the TestFlight beta (link in [Releases](../../releases)).
+**iPhone**: coming soon. Notes already sync through iCloud Drive, so they'll be there when it lands.
 
 **Connect your AI.** Anthology offers to connect Claude Code, Claude Desktop/Cowork, Cursor, VS Code, Gemini CLI
 and Codex on first launch (**Settings › Connections** later). Claude Code users can use the plugin instead:
@@ -63,6 +64,8 @@ The plugin adds the Anthology tools, the `//m` shortcuts, and two commands: `/an
 matters from this chat) and `/anthology:recall <topic>` (answer from your notes). It needs the Mac app installed.
 
 Then say *"save this to Anthology"* in any conversation.
+
+Running a session? There's a step-by-step [workshop guide (Turkish)](docs/workshop.md).
 
 ## How it works
 
@@ -96,6 +99,10 @@ Both chat prefixes and the hotkey are yours to change in **Settings › Shortcut
 ## Privacy and security
 
 - No backend. Notes stay in your iCloud Drive and on your devices.
+- Signed with Developer ID and notarized by Apple. `install.sh` checks the signature, the developer team and
+  Gatekeeper before installing anything.
+- The Mac app is not sandboxed: it needs to edit your AI tools' config files (`~/.claude.json`,
+  `~/.cursor/mcp.json`, …) when you press **Connect**. It backs each file up first and only touches its own entry.
 - Optional Touch ID / Face ID lock.
 - AI tools can't delete notes unless you allow it; every AI edit keeps the previous version (Undo);
   large removals are flagged; writes are rate-limited; note content is passed to models as data, not
@@ -117,7 +124,7 @@ scripts/mcp-smoke.sh                # end-to-end MCP check
 ```
 
 Project layout: `MarginKit/` (store, MCP tools, `anthology-mcp`), `App/Shared` (design system, editor),
-`App/Anthology` (macOS), `App/MarginMobile` (iOS), `docs/` (design spec, plans, security review).
+`App/Margin` (macOS), `App/MarginMobile` (iOS), `docs/` (design spec, plans, security review).
 
 ## FAQ
 
