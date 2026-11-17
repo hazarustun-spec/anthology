@@ -30,4 +30,5 @@ if xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null 2>&1; then
 else
   echo "Skipped notarization: run the one-time 'notarytool store-credentials margin-notary' step first."
 fi
+cp "$DMG" "$OUT/Anthology.dmg"   # stable name for releases/latest/download/Anthology.dmg
 echo "$DMG"

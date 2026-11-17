@@ -1489,6 +1489,16 @@
           }
         }
       }
+    },
+    "Connected through the Anthology plugin": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anthology eklentisiyle bağlı"
+          }
+        }
+      }
     }
   }
 }

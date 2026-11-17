@@ -54,11 +54,22 @@ final class ClaudeConnection {
 
     var hookCommand: String { "\"\(helperPath)\" hook" }
 
+    /// True when the Anthology plugin is enabled in Claude Code (`/plugin install anthology@anthology`).
+    /// The plugin brings its own MCP server and shortcut hook, so the app does not add a second copy.
+    private(set) var claudeCodeViaPlugin = false
+
+    static func pluginEnabled(settings: URL = ClaudeHookConfig.userSettings) -> Bool {
+        guard let root = try? MCPConfigFile.read(settings),
+              let enabled = root["enabledPlugins"] as? [String: Any] else { return false }
+        return enabled["anthology@anthology"] as? Bool == true
+    }
+
     func refresh() {
+        claudeCodeViaPlugin = Self.pluginEnabled()
         var code = MCPConfigFile.status(at: ClaudePaths.claudeCodeConfig, binary: helperPath)
         // The shortcut hook is part of the Claude Code connection; offer "Update" when it is missing.
         if code == .connected, !ClaudeHookConfig.isInstalled(command: hookCommand) { code = .differentBinary }
-        status[.claudeCode] = code
+        status[.claudeCode] = claudeCodeViaPlugin ? .connected : code
         for client in Client.allCases where client != .claudeCode {
             if let cfg = client.jsonConfig {
                 status[client] = MCPConfigFile.status(at: cfg.url, binary: helperPath, key: cfg.key)
@@ -67,8 +78,11 @@ final class ClaudeConnection {
             }
         }
         // The installed helper must be byte-identical to the one in this app; otherwise offer "Update".
+        // (The plugin runs the helper inside the app bundle, so it is always current.)
         if !installedHelperMatchesBundle {
-            for client in Client.allCases where status[client] == .connected { status[client] = .differentBinary }
+            for client in Client.allCases where status[client] == .connected && !(client == .claudeCode && claudeCodeViaPlugin) {
+                status[client] = .differentBinary
+            }
         }
     }
 

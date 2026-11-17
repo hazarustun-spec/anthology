@@ -35,13 +35,34 @@ project. **Anthology** gives them a home:
 
 ## Install
 
-| | |
-|---|---|
-| **Mac** (macOS 15+) | Download `Anthology.dmg` from [Releases](../../releases), open it, drag Anthology to Applications. |
-| **iPhone** (iOS 18+) | Join the TestFlight beta (link in [Releases](../../releases)). |
+**Mac** (macOS 26+), one line:
 
-Then open Anthology on the Mac → **Settings › Connections** → **Connect** next to Claude Code and/or
-Claude Desktop. That's it — say *"save this to Anthology"* in any conversation.
+```sh
+curl -fsSL https://raw.githubusercontent.com/hazarustun-spec/anthology/main/install.sh | sh
+```
+
+or with Homebrew:
+
+```sh
+brew install --cask hazarustun-spec/anthology/anthology
+```
+
+or download `Anthology.dmg` from [Releases](../../releases) and drag it to Applications.
+
+**iPhone** (iOS 26+): join the TestFlight beta (link in [Releases](../../releases)).
+
+**Connect your AI.** Anthology offers to connect Claude Code, Claude Desktop/Cowork, Cursor, VS Code, Gemini CLI
+and Codex on first launch (**Settings › Connections** later). Claude Code users can use the plugin instead:
+
+```
+/plugin marketplace add hazarustun-spec/anthology
+/plugin install anthology@anthology
+```
+
+The plugin adds the Anthology tools, the `//m` shortcuts, and two commands: `/anthology:save` (keep what
+matters from this chat) and `/anthology:recall <topic>` (answer from your notes). It needs the Mac app installed.
+
+Then say *"save this to Anthology"* in any conversation.
 
 ## How it works
 

@@ -49,7 +49,7 @@ public enum MCPConfigFile {
         try write(root, to: url)
     }
 
-    static func read(_ url: URL) throws -> [String: Any] {
+    public static func read(_ url: URL) throws -> [String: Any] {
         let data = try Data(contentsOf: url)
         if data.isEmpty { return [:] }
         guard let object = try? JSONSerialization.jsonObject(with: data), let dict = object as? [String: Any] else {

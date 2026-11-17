@@ -120,14 +120,20 @@ struct ConnectionRow: View {
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(palette: Palette.accentWash)))
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13, weight: .medium))
-                Text(detail).font(.system(size: 11)).foregroundStyle(.secondary)
+                if client == .claudeCode && connection.claudeCodeViaPlugin {
+                    Text("Connected through the Anthology plugin").font(.system(size: 11)).foregroundStyle(.secondary)
+                } else {
+                    Text(detail).font(.system(size: 11)).foregroundStyle(.secondary)
+                }
             }
             Spacer()
             if connection.working == client {
                 ProgressView().controlSize(.small)
             } else if status == .connected {
                 Menu {
-                    Button("Disconnect") { connection.disconnect(client) }
+                    if !(client == .claudeCode && connection.claudeCodeViaPlugin) {
+                        Button("Disconnect") { connection.disconnect(client) }
+                    }
                 } label: {
                     Label("Connected", systemImage: "checkmark.circle.fill")
                 }

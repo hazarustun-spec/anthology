@@ -1,0 +1,12 @@
+{
+  "description": "Anthology chat shortcuts: //m saves with Claude's help, //m! saves instantly without reaching the model.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/anthology-mcp\" hook" }
+        ]
+      }
+    ]
+  }
+}

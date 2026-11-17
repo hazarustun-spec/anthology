@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "anthology": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/anthology-mcp",
+      "args": []
+    }
+  }
+}

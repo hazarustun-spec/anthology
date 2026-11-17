@@ -104,11 +104,34 @@ public struct HookHandler: Sendable {
     let store: MarginStore
     let settings: MarginSettings
     let quickNoteTitle: String
+    let markerDirectory: URL
 
-    public init(store: MarginStore, settings: MarginSettings, quickNoteTitle: String) {
+    public init(store: MarginStore, settings: MarginSettings, quickNoteTitle: String,
+                markerDirectory: URL = FileManager.default.temporaryDirectory.appendingPathComponent("anthology-hook", isDirectory: true)) {
         self.store = store
         self.settings = settings
         self.quickNoteTitle = quickNoteTitle
+        self.markerDirectory = markerDirectory
+    }
+
+    /// The hook can be registered twice (the app's settings.json entry and the Claude Code plugin).
+    /// Only the first invocation for a given prompt acts; the second lets the prompt through untouched.
+    func claimPrompt(_ key: String) -> Bool {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: markerDirectory, withIntermediateDirectories: true)
+        // Forget markers older than a minute.
+        for name in (try? fm.contentsOfDirectory(atPath: markerDirectory.path)) ?? [] {
+            let url = markerDirectory.appendingPathComponent(name)
+            if let date = (try? fm.attributesOfItem(atPath: url.path))?[.modificationDate] as? Date,
+               Date().timeIntervalSince(date) > 60 { try? fm.removeItem(at: url) }
+        }
+        var hash: UInt64 = 0xcbf29ce484222325 // FNV-1a
+        for byte in key.utf8 { hash = (hash ^ UInt64(byte)) &* 0x100000001b3 }
+        let path = markerDirectory.appendingPathComponent(String(hash, radix: 16)).path
+        let fd = open(path, O_CREAT | O_EXCL | O_WRONLY, 0o600)
+        guard fd >= 0 else { return errno != EEXIST }
+        close(fd)
+        return true
     }
 
     /// Returns the hook's JSON output, or nil to let the prompt through untouched.
@@ -116,7 +139,10 @@ public struct HookHandler: Sendable {
         guard let object = try? JSONSerialization.jsonObject(with: input) as? [String: Any],
               let prompt = object["prompt"] as? String else { return nil }
         let cwd = (object["cwd"] as? String).flatMap(MarginTools.usableProjectPath)
-        switch settings.classify(prompt) {
+        let kind = settings.classify(prompt)
+        if case .none = kind { return nil }
+        guard claimPrompt("\(object["session_id"] as? String ?? "")\u{0}\(prompt)") else { return nil }
+        switch kind {
         case .none:
             return nil
         case .instant(let text):
