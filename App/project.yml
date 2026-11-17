@@ -45,6 +45,7 @@ targets:
       base:
         INFOPLIST_FILE: Margin/Info.plist
         CODE_SIGN_ENTITLEMENTS: Margin/Margin.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
     postCompileScripts:
