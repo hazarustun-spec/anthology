@@ -45,6 +45,7 @@ or with Homebrew:
 
 ```sh
 brew tap hazarustun-spec/anthology https://github.com/hazarustun-spec/anthology
+brew trust hazarustun-spec/anthology
 brew install --cask anthology
 ```
 
