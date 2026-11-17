@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
-<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EDF1EB"/></linearGradient>
-<linearGradient id="fill" x1="0.15" y1="0" x2="0.85" y2="1">
-  <stop offset="0" stop-color="#86BE7C"/><stop offset="0.5" stop-color="#4C8445"/><stop offset="1" stop-color="#22461F"/>
-</linearGradient>
-<linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/><stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
-<filter id="cast" filterUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><feGaussianBlur stdDeviation="24"/></filter>
-<clipPath id="clipA"><path d="M441.8,254.0 L582.2,254.0 L804.5,814.0 L655.3,814.0 L618.7,713.2 L405.3,713.2 L368.7,814.0 L219.5,814.0 Z M443.9,606.8 L512.0,419.2 L580.1,606.8 Z" fill-rule="evenodd"/></clipPath>
-</defs><rect width="1024" height="1024" fill="url(#bg)"/><g filter="url(#cast)" opacity="0.26" transform="translate(0,22)"><path d="M441.8,254.0 L582.2,254.0 L804.5,814.0 L655.3,814.0 L618.7,713.2 L405.3,713.2 L368.7,814.0 L219.5,814.0 Z M443.9,606.8 L512.0,419.2 L580.1,606.8 Z" fill-rule="evenodd" fill="#1D3A1A"/></g><path d="M441.8,254.0 L582.2,254.0 L804.5,814.0 L655.3,814.0 L618.7,713.2 L405.3,713.2 L368.7,814.0 L219.5,814.0 Z M443.9,606.8 L512.0,419.2 L580.1,606.8 Z" fill-rule="evenodd" fill="url(#fill)"/><g clip-path="url(#clipA)"><rect x="0" y="244" width="1024" height="580" fill="url(#gloss)"/></g></svg>
