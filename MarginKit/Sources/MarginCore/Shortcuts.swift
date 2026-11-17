@@ -141,7 +141,12 @@ public struct HookHandler: Sendable {
         let cwd = (object["cwd"] as? String).flatMap(MarginTools.usableProjectPath)
         let kind = settings.classify(prompt)
         if case .none = kind { return nil }
-        guard claimPrompt("\(object["session_id"] as? String ?? "")\u{0}\(prompt)") else { return nil }
+        guard claimPrompt("\(object["session_id"] as? String ?? "")\u{0}\(prompt)") else {
+            // Another hook instance (or a quick resend) already handled this prompt. An instant capture must
+            // still never reach the model, so block it without saving a second copy.
+            if case .instant = kind { return json(["decision": "block", "reason": "✓ Anthology"]) }
+            return nil
+        }
         switch kind {
         case .none:
             return nil
@@ -155,9 +160,16 @@ public struct HookHandler: Sendable {
         case .smart:
             let context = "The user started this message with the Anthology shortcut \(settings.smartPrefix). "
                 + "Save the rest of the message to Anthology now, without asking for confirmation: pick or update the right note "
-                + "(project_path: \(cwd ?? "unknown")), then reply with one short line saying where it went."
+                + "(project_path: \(Self.quoted(cwd))), then reply with one short line saying where it went."
             return json(["hookSpecificOutput": ["hookEventName": "UserPromptSubmit", "additionalContext": context]])
         }
+    }
+
+    /// Folder paths go into model context; keep them on one line and clearly delimited.
+    static func quoted(_ path: String?) -> String {
+        guard let path else { return "unknown" }
+        let flat = path.components(separatedBy: .newlines).joined(separator: " ").replacingOccurrences(of: "\"", with: "\\\"")
+        return "\"\(flat.prefix(1024))\""
     }
 
     private func json(_ object: [String: Any]) -> Data? {

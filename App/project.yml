@@ -61,7 +61,7 @@ targets:
           mkdir -p "$DEST"
           rm -f "$DEST/anthology-mcp"
           cp "$BIN/anthology-mcp" "$DEST/anthology-mcp"
-          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$DEST/anthology-mcp" || true
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$DEST/anthology-mcp" || [ "$CONFIGURATION" != "Release" ]  # never ship an unsigned helper
 
   MarginMobile:
     type: application

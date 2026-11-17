@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds a Developer ID–signed, notarized, stapled Anthology.dmg.
-# One-time setup (stores an app-specific password in your keychain):
-#   xcrun notarytool store-credentials margin-notary --apple-id <you@icloud.com> --team-id <TEAMID>
+# One-time setup (stores App Store Connect API key credentials in your keychain):
+#   xcrun notarytool store-credentials margin-notary --key <AuthKey.p8> --key-id <KEYID> --issuer <ISSUER>
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$ROOT/build/release"
@@ -26,7 +26,10 @@ codesign --sign "Developer ID Application" --timestamp "$DMG" 2>/dev/null || tru
 if xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null 2>&1; then
   xcrun notarytool submit "$DMG" --keychain-profile "$PROFILE" --wait
   xcrun stapler staple "$DMG"
-  spctl -a -t open --context context:primary-signature -vv "$DMG"
+  xcrun stapler validate "$DMG"
+  # The DMG itself is unsigned when no local Developer ID cert exists (export uses cloud signing);
+  # Gatekeeper judges the notarized app inside, so assess that instead.
+  spctl -a -t exec -vv "$OUT/export/Anthology.app"
 else
   echo "Skipped notarization: run the one-time 'notarytool store-credentials margin-notary' step first."
 fi
