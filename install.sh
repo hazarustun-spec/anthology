@@ -29,7 +29,7 @@ main() {
   if [ -n "${ANTHOLOGY_DMG:-}" ]; then
     cp "$ANTHOLOGY_DMG" "$tmp/Anthology.dmg"
   else
-    say "Downloading Anthology…"
+    say "Downloading Anthology..."
     curl -fL --proto '=https' --tlsv1.2 --progress-bar -o "$tmp/Anthology.dmg" "$URL" || fail "could not download $URL"
   fi
 
@@ -39,7 +39,7 @@ main() {
   [ -d "$src" ] || fail "the disk image does not contain Anthology.app"
 
   # Refuse anything that isn't Anthology signed by its developer and notarized by Apple.
-  say "Checking the signature…"
+  say "Checking the signature..."
   codesign --verify --deep --strict "$src" 2>/dev/null || fail "Anthology.app's signature is broken. Nothing was installed."
   team="$(codesign -dv "$src" 2>&1 | sed -n 's/^TeamIdentifier=//p')"
   [ "$team" = "$TEAM_ID" ] || fail "Anthology.app is signed by an unexpected developer ($team). Nothing was installed."
@@ -49,7 +49,7 @@ main() {
   osascript -e 'tell application id "com.hazarustun.margin" to quit' >/dev/null 2>&1 || true
   sleep 1
 
-  say "Installing to $APP…"
+  say "Installing to ${APP}..."
   if [ -w "$(dirname "$APP")" ]; then
     rm -rf "$APP" && ditto "$src" "$APP"
   else
