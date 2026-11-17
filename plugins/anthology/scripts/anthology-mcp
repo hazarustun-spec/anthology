@@ -1,0 +1,22 @@
+#!/bin/sh
+# Launches the helper that ships inside the Anthology Mac app (MCP server, or `hook` mode).
+# The plugin stays tiny and always matches the installed app version.
+for helper in \
+  "/Applications/Anthology.app/Contents/Helpers/anthology-mcp" \
+  "$HOME/Applications/Anthology.app/Contents/Helpers/anthology-mcp" \
+  "$HOME/Library/Application Support/Anthology/bin/anthology-mcp"; do
+  [ -x "$helper" ] && exec "$helper" "$@"
+done
+
+install_hint="Install the Anthology Mac app: curl -fsSL https://raw.githubusercontent.com/hazarustun-spec/anthology/main/install.sh | sh"
+if [ "${1:-}" = "hook" ]; then
+  # Only interrupt the chat when the user actually typed an Anthology shortcut.
+  input="$(cat)"
+  case "$input" in
+    *'"prompt":"//m'*|*'"prompt": "//m'*)
+      printf '{"decision":"block","reason":"Anthology is not installed. %s"}\n' "$install_hint" ;;
+  esac
+  exit 0
+fi
+echo "Anthology Mac app not found. $install_hint" >&2
+exit 1

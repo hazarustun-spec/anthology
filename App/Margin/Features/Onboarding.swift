@@ -1,7 +1,7 @@
 import MarginCore
 import SwiftUI
 
-/// Five-step welcome tour: what Margin is, the chat shortcut (animated), connecting, shortcuts, privacy.
+/// Five-step welcome tour: what Anthology is, the chat shortcut (animated), connecting, shortcuts, privacy.
 struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("onboarded") private var onboarded = false
@@ -33,7 +33,7 @@ struct OnboardingView: View {
             .clipped()
 
             HStack {
-                Button("Skip") { finish() }.buttonStyle(.plain).foregroundStyle(.secondary)
+                Button("Skip") { finish() }.buttonStyle(.glass)
                     .opacity(step < count - 1 ? 1 : 0)
                 Spacer()
                 HStack(spacing: 6) {
@@ -46,19 +46,18 @@ struct OnboardingView: View {
                 Spacer()
                 HStack(spacing: 8) {
                     if step > 0 {
-                        Button("Back") { go(-1) }.buttonStyle(.bordered)
+                        Button("Back") { go(-1) }.buttonStyle(.glass)
                     }
-                    Button(step == count - 1 ? "Start using Margin" : "Continue") {
+                    Button(step == count - 1 ? "Start using Anthology" : "Continue") {
                         step == count - 1 ? finish() : go(1)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                     .keyboardShortcut(.defaultAction)
                 }
             }
             .padding(20)
         }
         .frame(width: 720, height: 520)
-        .background(Color(palette: Palette.canvas))
         .tint(Color(palette: Palette.accent))
     }
 
@@ -109,7 +108,7 @@ private struct WelcomeStep: View {
                     .animation(.spring(duration: 0.7, bounce: 0.5), value: shown)
             }
             .frame(height: 190)
-            StepTitle(title: "Welcome to Margin", subtitle: "The notes app your AI writes into. Say it in Claude, find it here, on your Mac and iPhone.")
+            StepTitle(title: "Welcome to Anthology", subtitle: "The notes app your AI writes into. Say it in Claude, find it here, on your Mac and iPhone.")
         }
         .onAppear { shown = true }
     }
@@ -188,11 +187,11 @@ private struct ConnectStep: View {
     @State private var connection = ClaudeConnection()
     var body: some View {
         VStack(spacing: 22) {
-            StepTitle(title: "Connect your AI", subtitle: "One click. Margin adds itself to Claude; Gemini CLI, Cursor, VS Code and Codex are in Settings.")
+            StepTitle(title: "Connect your AI", subtitle: "One click. Anthology adds itself to Claude; Gemini CLI, Cursor, VS Code and Codex are in Settings.")
             VStack(spacing: 6) {
                 ConnectionRow(title: "Claude Code", detail: "Code tab in the Claude app, and the terminal", symbol: "chevron.left.forwardslash.chevron.right", client: .claudeCode, connection: connection)
                 Divider()
-                ConnectionRow(title: "Claude Desktop and Cowork", detail: "Claude restarts once to load Margin", symbol: "sparkles", client: .claudeDesktop, connection: connection)
+                ConnectionRow(title: "Claude Desktop and Cowork", detail: "Claude restarts once to load Anthology", symbol: "sparkles", client: .claudeDesktop, connection: connection)
             }
             .padding(16)
             .frame(width: 520)
@@ -271,7 +270,7 @@ private struct DoneStep: View {
                     .animation(.spring(duration: 0.6, bounce: 0.55), value: burst)
             }
             .frame(height: 200)
-            StepTitle(title: "You're all set", subtitle: "Your notes are plain Markdown files on your Mac. Every AI change can be undone, and you can lock Margin with Touch ID in Settings.")
+            StepTitle(title: "You're all set", subtitle: "Your notes are plain Markdown files on your Mac. Every AI change can be undone, and you can lock Anthology with Touch ID in Settings.")
         }
         .onAppear {
             burst = true

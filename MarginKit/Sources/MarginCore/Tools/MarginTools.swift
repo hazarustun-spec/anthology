@@ -46,7 +46,7 @@ final class RateLimiter: @unchecked Sendable {
     }
 }
 
-/// Transport-independent implementation of Margin's MCP tools.
+/// Transport-independent implementation of Anthology's MCP tools.
 public struct MarginTools: Sendable {
     let store: MarginStore
     let source: ChangeSource
@@ -90,7 +90,7 @@ public struct MarginTools: Sendable {
     }
 
     public static let toolSpecs: [ToolSpec] = [
-        ToolSpec(name: "list_topics", description: "List all Margin topics with their notes (id, revision, last updated) and the project folders that route to each topic.", params: [], readOnly: true),
+        ToolSpec(name: "list_topics", description: "List all Anthology topics with their notes (id, revision, last updated) and the project folders that route to each topic.", params: [], readOnly: true),
         ToolSpec(name: "get_note", description: "Read one note's Markdown and its current revision. Identify it by note_id, or by topic title + note title.", params: [
             p("note_id", "Note id from list_topics/search_notes.", required: false),
             p("topic", "Topic title (with `title`).", required: false),
@@ -99,7 +99,7 @@ public struct MarginTools: Sendable {
         ToolSpec(name: "search_notes", description: "Full-text search across all notes (case/diacritic-insensitive). Returns matching notes with a snippet.", params: [
             p("query", "Words to search for."),
         ], readOnly: true),
-        ToolSpec(name: "save_note", description: "Save something to Margin. Resolves the topic from project_path (or `topic`). If note_title matches an existing note in that topic, the content is appended to it; otherwise a new note is created. To merge into an existing note cleanly, prefer get_note + update_note.", params: [
+        ToolSpec(name: "save_note", description: "Save something to Anthology. Resolves the topic from project_path (or `topic`). If note_title matches an existing note in that topic, the content is appended to it; otherwise a new note is created. To merge into an existing note cleanly, prefer get_note + update_note.", params: [
             p("content", "Markdown to save."),
             p("summary", "One-line description of the change for the note's history."),
             p("project_path", "Absolute path of the current project/working folder.", required: false),
@@ -122,7 +122,7 @@ public struct MarginTools: Sendable {
         ToolSpec(name: "move_note", description: "Move a note to another topic.", params: [
             p("note_id", "Note id."), p("topic_id", "Destination topic id."),
         ], destructive: true),
-        ToolSpec(name: "delete_note", description: "Move a note to Margin's trash. Only when the user asks.", params: [
+        ToolSpec(name: "delete_note", description: "Move a note to Anthology's trash. Only when the user asks.", params: [
             p("note_id", "Note id."),
         ], destructive: true),
     ]
@@ -145,10 +145,10 @@ public struct MarginTools: Sendable {
             }
         }
         if !specs.contains(where: { $0.name == name }), Self.toolSpecs.contains(where: { $0.name == name }) {
-            return .error("This action is turned off in Margin's settings. Ask the user to do it in the Margin app.")
+            return .error("This action is turned off in Anthology's settings. Ask the user to do it in the Anthology app.")
         }
         if Self.writeTools.contains(name), !limiter.allow() {
-            return .error("Too many changes in a short time; Margin paused writes for a minute. Tell the user.")
+            return .error("Too many changes in a short time; Anthology paused writes for a minute. Tell the user.")
         }
         do {
             if let spec = Self.toolSpecs.first(where: { $0.name == name }) {
@@ -172,13 +172,13 @@ public struct MarginTools: Sendable {
                 return .ok("Moved to \(r.topic.title) › \(r.meta.title).")
             case "delete_note":
                 try store.deleteNote(id: str(args, "note_id"))
-                return .ok("Moved note to Margin's trash.")
+                return .ok("Moved note to Anthology's trash.")
             default: return .error("Unknown tool \(name).")
             }
         } catch let error as MarginError {
             return .error(message(for: error))
         } catch {
-            return .error("Margin error: \(error.localizedDescription)")
+            return .error("Anthology error: \(error.localizedDescription)")
         }
     }
 
@@ -189,7 +189,7 @@ public struct MarginTools: Sendable {
         case .ambiguousTopic(let titles):
             "Several topics match this project folder: \(titles.joined(separator: ", ")). Ask the user which one, then call again with `topic`."
         case .conflict:
-            "This note has two versions from different devices. Ask the user to resolve it in the Margin app first."
+            "This note has two versions from different devices. Ask the user to resolve it in the Anthology app first."
         default:
             error.localizedDescription
         }
@@ -268,7 +268,7 @@ public struct MarginTools: Sendable {
         )
         let flagged = (try? store.history(noteID: ref.meta.id).last?.warning) == "large-removal"
         return "Updated \(ref.topic.title) › \(ref.meta.title) (revision=\(ref.meta.revision))."
-            + (flagged ? " This removed most of the note; Margin kept the previous version and the user can undo it. Mention this to the user." : "")
+            + (flagged ? " This removed most of the note; Anthology kept the previous version and the user can undo it. Mention this to the user." : "")
     }
 
     static func title(from content: String) -> String {

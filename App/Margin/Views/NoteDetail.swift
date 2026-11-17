@@ -12,6 +12,7 @@ struct NoteDetail: View {
     @State private var conflictRevision: Int?
     @State private var showHistory = false
     @State private var titleDraft = ""
+    @State private var attribution: [LineAttribution] = []
     @FocusState private var titleFocused: Bool
 
     var body: some View {
@@ -30,11 +31,6 @@ struct NoteDetail: View {
                         .focused($titleFocused)
                         .onSubmit { commitTitle() }
                         .onChange(of: titleFocused) { _, focused in if !focused { commitTitle() } }
-                    if let note {
-                        Menu { NoteMenu(note: note) } label: { Image(systemName: "ellipsis.circle") }
-                            .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-                            .foregroundStyle(Color(palette: Palette.secondary))
-                    }
                 }
                 if let last = library.lastChange(for: noteID) {
                     Button { showHistory.toggle() } label: { SourceBadge(entry: last) }
@@ -49,20 +45,19 @@ struct NoteDetail: View {
                 }
             }
             .padding(.top, 28).padding(.bottom, 8)
-            NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? []) { _ in scheduleSave() }
+            NoteEditor(text: $text, freshLines: library.freshLines[noteID] ?? [], attribution: attribution) { _ in scheduleSave() }
+                // The author gutter sits in the page margin so text stays aligned with the title.
+                .padding(.leading, -AttributionGutter.width)
         }
-        .frame(maxWidth: 700, alignment: .leading)
-        .padding(.horizontal, 40)
+        .frame(maxWidth: 720, alignment: .leading)
+        .padding(.horizontal, 48)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(palette: Palette.card))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color(palette: Palette.hairline), lineWidth: 0.5))
-        )
-        .padding(14)
-        .background(Color(palette: Palette.canvas))
+        .background(Color(palette: Palette.card))
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
+        .onChange(of: library.note(noteID)?.meta.title) { _, new in
+            if !titleFocused, let new, new != titleDraft { titleDraft = new }
+        }
         .onDisappear { flush() }
         .task(id: library.freshLines[noteID]) {
             guard library.freshLines[noteID] != nil else { return }
@@ -74,9 +69,9 @@ struct NoteDetail: View {
     private var conflictBanner: some View {
         HStack(spacing: 10) {
             Image(systemName: "sparkles").foregroundStyle(Color(palette: Palette.accent))
-            Text("Claude updated this note while you were typing.").foregroundStyle(Color(palette: Palette.text))
+            Text("Claude updated this note while you were typing.").foregroundStyle(.primary)
             Spacer()
-            Button("Show Claude's version") { load(); conflictRevision = nil }
+            Button("Show Claude's version") { load(); conflictRevision = nil }.buttonStyle(.glass)
             Button("Keep mine") {
                 if let rev = conflictRevision { baseRevision = rev }
                 conflictRevision = nil
@@ -84,15 +79,15 @@ struct NoteDetail: View {
             }
         }
         .font(.system(size: 12))
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color(palette: Palette.accentWash)))
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .glassEffect(.regular, in: .capsule)
         .padding(.top, 16)
     }
 
     private func removalBanner(_ entry: HistoryEntry) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle").foregroundStyle(Color(palette: Palette.accent))
-            Text("\(entry.by.displayName) removed most of this note.").foregroundStyle(Color(palette: Palette.text))
+            Text("\(entry.by.displayName) removed most of this note.").foregroundStyle(.primary)
             Spacer()
             Button("Undo") {
                 library.restore(noteID: noteID, revision: entry.rev - 1)
@@ -100,8 +95,8 @@ struct NoteDetail: View {
             }
         }
         .font(.system(size: 12))
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color(palette: Palette.accentWash)))
+        .padding(.horizontal, 14).padding(.vertical, 9)
+        .glassEffect(.regular, in: .capsule)
         .padding(.top, 16)
     }
 
@@ -119,6 +114,7 @@ struct NoteDetail: View {
         titleDraft = library.note(noteID)?.meta.title ?? ""
         text = library.body(for: noteID)
         baseRevision = library.note(noteID)?.meta.revision ?? 0
+        attribution = library.attribution(for: noteID)
         dirty = false
     }
 

@@ -40,7 +40,7 @@ struct ShortcutTests {
     @Test func hookBlocksInstantAndSaves() throws {
         let store = try makeStore()
         let input = #"{"prompt":"//m! süt al","cwd":"/u/Kariyer","hook_event_name":"UserPromptSubmit"}"#
-        let out = HookHandler(store: store, settings: settings, quickNoteTitle: "Hızlı notlar").handle(Data(input.utf8))
+        let out = HookHandler(store: store, settings: settings, quickNoteTitle: "Hızlı notlar", markerDirectory: tempRoot()).handle(Data(input.utf8))
         let json = try JSONSerialization.jsonObject(with: out!) as! [String: Any]
         #expect(json["decision"] as? String == "block")
         #expect((json["reason"] as? String)?.contains("Kariyer › Hızlı notlar") == true)
@@ -50,17 +50,17 @@ struct ShortcutTests {
     @Test func hookAddsContextForSmart() throws {
         let store = try makeStore()
         let input = #"{"prompt":"//m SQL ekle","cwd":"/u/Kariyer","hook_event_name":"UserPromptSubmit"}"#
-        let out = HookHandler(store: store, settings: settings, quickNoteTitle: "Q").handle(Data(input.utf8))
+        let out = HookHandler(store: store, settings: settings, quickNoteTitle: "Q", markerDirectory: tempRoot()).handle(Data(input.utf8))
         let json = try JSONSerialization.jsonObject(with: out!) as! [String: Any]
         let specific = json["hookSpecificOutput"] as! [String: Any]
         #expect(specific["hookEventName"] as? String == "UserPromptSubmit")
-        #expect((specific["additionalContext"] as? String)?.contains("Margin") == true)
+        #expect((specific["additionalContext"] as? String)?.contains("Anthology") == true)
         #expect(try store.listTopics().isEmpty)
     }
 
     @Test func hookIgnoresOtherPromptsAndGarbage() throws {
         let store = try makeStore()
-        let h = HookHandler(store: store, settings: settings, quickNoteTitle: "Q")
+        let h = HookHandler(store: store, settings: settings, quickNoteTitle: "Q", markerDirectory: tempRoot())
         #expect(h.handle(Data(#"{"prompt":"hello"}"#.utf8)) == nil)
         #expect(h.handle(Data("not json".utf8)) == nil)
     }
@@ -70,16 +70,29 @@ struct ShortcutTests {
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let url = dir.appendingPathComponent("settings.json")
         try #"{"model":"opus","hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"other"}]}],"Stop":[]}}"#.write(to: url, atomically: true, encoding: .utf8)
-        try ClaudeHookConfig.install(at: url, command: "/bin/margin-mcp hook")
-        try ClaudeHookConfig.install(at: url, command: "/bin/margin-mcp hook") // idempotent
-        #expect(ClaudeHookConfig.isInstalled(at: url, command: "/bin/margin-mcp hook"))
+        try ClaudeHookConfig.install(at: url, command: "/bin/anthology-mcp hook")
+        try ClaudeHookConfig.install(at: url, command: "/bin/anthology-mcp hook") // idempotent
+        #expect(ClaudeHookConfig.isInstalled(at: url, command: "/bin/anthology-mcp hook"))
         let root = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
         #expect(root["model"] as? String == "opus")
         let ups = (root["hooks"] as! [String: Any])["UserPromptSubmit"] as! [[String: Any]]
         #expect(ups.count == 2)
         try ClaudeHookConfig.remove(at: url)
-        #expect(!ClaudeHookConfig.isInstalled(at: url, command: "/bin/margin-mcp hook"))
+        #expect(!ClaudeHookConfig.isInstalled(at: url, command: "/bin/anthology-mcp hook"))
         let after = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
         #expect(((after["hooks"] as! [String: Any])["UserPromptSubmit"] as! [[String: Any]]).count == 1)
+    }
+}
+
+struct HookDedupeTests {
+    @Test func secondHookForSamePromptPassesThrough() throws {
+        let store = try makeStore()
+        let markers = tempRoot().appendingPathComponent("markers")
+        let handler = HookHandler(store: store, settings: MarginSettings(smartPrefix: "//m", instantPrefix: "//m!"), quickNoteTitle: "Quick notes", markerDirectory: markers)
+        let input = try JSONSerialization.data(withJSONObject: ["prompt": "//m! buy milk", "session_id": "s1", "cwd": "/u/Home"])
+        #expect(handler.handle(input) != nil)
+        #expect(handler.handle(input) == nil)
+        let notes = try store.listNotes(topicID: store.listTopics()[0].id)
+        #expect(try store.findNote(id: notes[0].meta.id).1.body.components(separatedBy: "buy milk").count == 2)
     }
 }

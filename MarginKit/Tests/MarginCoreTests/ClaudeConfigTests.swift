@@ -22,8 +22,8 @@ struct ClaudeConfigTests {
         #expect((d["preferences"] as? [String: Any])?["x"] as? Int == 1)
         let servers = d["mcpServers"] as! [String: Any]
         #expect((servers["Blender"] as? [String: Any])?["command"] as? String == "/b")
-        #expect((servers["margin"] as? [String: Any])?["command"] as? String == "/m")
-        let backups = try FileManager.default.contentsOfDirectory(atPath: url.deletingLastPathComponent().path).filter { $0.contains("margin-backup") }
+        #expect((servers["anthology"] as? [String: Any])?["command"] as? String == "/m")
+        let backups = try FileManager.default.contentsOfDirectory(atPath: url.deletingLastPathComponent().path).filter { $0.contains("anthology-backup") }
         #expect(backups.count == 1)
     }
 
@@ -43,13 +43,13 @@ struct ClaudeConfigTests {
     }
 
     @Test func statusReportsStalePath() throws {
-        let url = try tempFile(#"{"mcpServers":{"margin":{"command":"/old"}}}"#)
+        let url = try tempFile(#"{"mcpServers":{"anthology":{"command":"/old"}}}"#)
         #expect(MCPConfigFile.status(at: url, binary: "/new") == .differentBinary)
         #expect(MCPConfigFile.status(at: try tempFile(#"{}"#), binary: "/new") == .notConnected)
     }
 
     @Test func removeKeepsEverythingElse() throws {
-        let url = try tempFile(#"{"a":true,"mcpServers":{"margin":{"command":"/m"},"x":{"command":"/x"}}}"#)
+        let url = try tempFile(#"{"a":true,"mcpServers":{"anthology":{"command":"/m"},"x":{"command":"/x"}}}"#)
         try MCPConfigFile.remove(at: url)
         let d = try json(url)
         #expect(d["a"] as? Bool == true)

@@ -13,7 +13,7 @@ struct SearchPalette: View {
         let results = library.search(query)
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(Color(palette: Palette.tertiary))
+                Image(systemName: "magnifyingglass").foregroundStyle(.tertiary)
                 TextField("Search all notes", text: $query)
                     .textFieldStyle(.plain).font(.system(size: 17)).focused($focused)
                     .onKeyPress(.downArrow) { selection = min(selection + 1, max(results.count - 1, 0)); return .handled }
@@ -23,7 +23,7 @@ struct SearchPalette: View {
                 Text("esc").font(.system(size: 11)).foregroundStyle(.tertiary)
             }
             .padding(16)
-            if !results.isEmpty { Divider().overlay(Color(palette: Palette.hairline)) }
+            if !results.isEmpty { Divider().opacity(0.5) }
             ScrollView {
                 VStack(spacing: 2) {
                     ForEach(Array(results.enumerated()), id: \.offset) { i, hit in
@@ -37,7 +37,7 @@ struct SearchPalette: View {
                             Spacer()
                         }
                         .padding(.horizontal, 12).padding(.vertical, 8)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color(palette: i == selection ? Palette.accentWash : .clear)))
+                        .background(ConcentricRectangle(corners: .concentric(minimum: 10)).fill(i == selection ? Color(palette: Palette.accent).opacity(0.28) : .clear))
                         .contentShape(Rectangle())
                         .onTapGesture { selection = i; open(results) }
                     }
@@ -48,9 +48,7 @@ struct SearchPalette: View {
             .opacity(results.isEmpty ? 0 : 1)
         }
         .frame(width: 600)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color(palette: Palette.card)))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color(palette: Palette.hairline), lineWidth: 0.5))
-        .shadow(color: .black.opacity(0.18), radius: 30, y: 12)
+        .glassEffect(.regular, in: .rect(cornerRadius: 22))
         .onAppear { focused = true }
         .onChange(of: query) { selection = 0 }
     }

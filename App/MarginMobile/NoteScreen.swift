@@ -82,12 +82,22 @@ struct MobileNoteEditor: UIViewRepresentable {
             let selection = view.selectedRange
             styler.freshLines = fresh
             if view.text != text {
+                styler.activeParagraph = nil
                 view.textStorage.replaceCharacters(in: NSRange(location: 0, length: view.textStorage.length), with: text)
             }
             styler.styleAll(view.textStorage)
             let length = (text as NSString).length
             view.selectedRange = NSRange(location: min(selection.location, length), length: 0)
             loading = false
+        }
+
+        func textViewDidChangeSelection(_ textView: UITextView) {
+            guard !loading, textView.isFirstResponder else { return }
+            styler.caretMoved(to: textView.selectedRange, in: textView.textStorage)
+        }
+
+        func textViewDidEndEditing(_ textView: UITextView) {
+            styler.caretMoved(to: nil, in: textView.textStorage)
         }
 
         func textViewDidChange(_ textView: UITextView) {
@@ -120,16 +130,29 @@ struct NoteScreen: View {
     @State private var conflictRevision: Int?
     @State private var showHistory = false
     @FocusState private var titleFocused: Bool
+    @State private var editingTitle = false
 
     var body: some View {
         let note = library.note(noteID)
         VStack(alignment: .leading, spacing: 10) {
             if conflictRevision != nil { banner }
-            TextField("Title", text: $title, axis: .vertical)
-                .font(.system(size: 28, weight: .bold))
-                .focused($titleFocused)
-                .onSubmit(commitTitle)
-                .onChange(of: titleFocused) { _, f in if !f { commitTitle() } }
+            Group {
+                if editingTitle {
+                    TextField("Title", text: $title, axis: .vertical)
+                        .focused($titleFocused)
+                        .onSubmit(commitTitle)
+                        .onChange(of: titleFocused) { _, f in if !f { commitTitle(); editingTitle = false } }
+                        .onAppear { titleFocused = true }
+                } else {
+                    // Plain text when not editing: always renders (a vertical TextField can show empty on first push).
+                    Text(title.isEmpty ? (library.note(noteID)?.meta.title ?? "") : title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture { editingTitle = true }
+                }
+            }
+            .font(.system(size: 28, weight: .bold))
+            .foregroundStyle(Color(palette: Palette.text))
             if let last = library.lastChange(for: noteID) {
                 Button { showHistory = true } label: { SourceBadge(entry: last) }.buttonStyle(.plain)
             }
@@ -137,7 +160,7 @@ struct NoteScreen: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .background(Color(palette: Palette.card))
+        .background(Color(palette: Palette.card).ignoresSafeArea())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -150,7 +173,7 @@ struct NoteScreen: View {
                         ShareLink(item: "# \(note.meta.title)\n\n\(text)") { Label("Share", systemImage: "square.and.arrow.up") }
                         Button("History", systemImage: "clock.arrow.circlepath") { showHistory = true }
                     }
-                } label: { Image(systemName: "ellipsis.circle") }
+                } label: { Image(systemName: "ellipsis") }
             }
         }
         .sheet(isPresented: $showHistory) {
@@ -167,6 +190,10 @@ struct NoteScreen: View {
         }
         .onAppear(perform: load)
         .onChange(of: note?.meta.revision) { _, _ in externalChange() }
+        .onChange(of: library.note(noteID)?.meta.title) { _, new in
+            // Keep the title field in sync with the stored title (also covers a late first load).
+            if !titleFocused, let new, new != title { title = new }
+        }
         .onDisappear(perform: flush)
         .task(id: library.freshLines[noteID]) {
             guard library.freshLines[noteID] != nil else { return }
@@ -186,10 +213,10 @@ struct NoteScreen: View {
                     save()
                 }
             }
-            .buttonStyle(.bordered).font(.footnote)
+            .buttonStyle(.glass).font(.footnote)
         }
-        .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(palette: Palette.accentWash)))
+        .padding(14)
+        .glassEffect(.regular, in: .rect(cornerRadius: 22))
     }
 
     private func load() {
@@ -322,7 +349,7 @@ struct MobileSettings: View {
                     }
                 }
                 Section {
-                    Text("To save from chat, connect Claude in Margin for Mac. Your notes are plain Markdown files in iCloud Drive › Margin.")
+                    Text("To save from chat, connect Claude in Anthology for Mac. Your notes are plain Markdown files in iCloud Drive › Anthology.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }

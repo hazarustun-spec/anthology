@@ -18,7 +18,7 @@ public enum MarginError: Error, Equatable, LocalizedError {
             "Note changed since it was read (expected revision \(expected), now \(actual))."
         case .ambiguousTopic(let titles): "Several topics match: \(titles.joined(separator: ", "))"
         case .conflict(let path): "Note has unresolved iCloud conflict versions: \(path)"
-        case .busy: "Margin is busy saving from another window or chat. Try again in a moment."
+        case .busy: "Anthology is busy saving from another window or chat. Try again in a moment."
         }
     }
 }

@@ -78,4 +78,15 @@ struct TopicTests {
         #expect(r1.id == r2.id)
         #expect(try store.listTopics().count == 1)
     }
+
+    @Test func trashTopicRemovesItAndItsNotes() throws {
+        let store = try makeStore()
+        let topic = try store.resolveTopic(projectPath: "/u/Old", explicitTitle: nil)
+        _ = try store.createNote(topicID: topic.id, title: "N", body: "x", by: .app, summary: "s", project: nil)
+        try store.trashTopic(id: topic.id, systemTrash: false)
+        #expect(try store.listTopics().isEmpty)
+        #expect(FileManager.default.fileExists(atPath: store.root.appendingPathComponent(".trash/\(topic.directoryName)").path))
+        // A later save from the same folder starts a fresh topic.
+        #expect(try store.resolveTopic(projectPath: "/u/Old", explicitTitle: nil).id != topic.id)
+    }
 }

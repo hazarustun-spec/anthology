@@ -82,12 +82,12 @@
         }
       }
     },
-    "Pick a note, or ask Claude to save something to Margin.": {
+    "Pick a note, or ask Claude to save something to Anthology.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bir not seç ya da Claude'a Margin'e bir şey kaydetmesini söyle."
+            "value": "Bir not seç ya da Claude'a Anthology'ye bir şey kaydetmesini söyle."
           }
         }
       }
@@ -162,22 +162,22 @@
         }
       }
     },
-    "Ask Claude to save something to Margin.": {
+    "Ask Claude to save something to Anthology.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claude'a Margin'e bir şey kaydetmesini söyle."
+            "value": "Claude'a Anthology'ye bir şey kaydetmesini söyle."
           }
         }
       }
     },
-    "Open Margin": {
+    "Open Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'i aç"
+            "value": "Anthology'yi aç"
           }
         }
       }
@@ -192,22 +192,22 @@
         }
       }
     },
-    "Edited in Margin": {
+    "Edited in Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'de düzenlendi"
+            "value": "Anthology'de düzenlendi"
           }
         }
       }
     },
-    "Created in Margin": {
+    "Created in Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'de oluşturuldu"
+            "value": "Anthology'de oluşturuldu"
           }
         }
       }
@@ -252,22 +252,22 @@
         }
       }
     },
-    "Claude restarts once to load Margin": {
+    "Claude restarts once to load Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'i yüklemek için Claude bir kez yeniden başlar"
+            "value": "Anthology'yi yüklemek için Claude bir kez yeniden başlar"
           }
         }
       }
     },
-    "Then just say \"save this to Margin\" in any conversation.": {
+    "Then just say \"save this to Anthology\" in any conversation.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sonra herhangi bir sohbette \"bunu Margin'e kaydet\" demen yeterli."
+            "value": "Sonra herhangi bir sohbette \"bunu Anthology'ye kaydet\" demen yeterli."
           }
         }
       }
@@ -372,12 +372,12 @@
         }
       }
     },
-    "The Claude helper is missing from the app. Reinstall Margin.": {
+    "The Claude helper is missing from the app. Reinstall Anthology.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claude yardımcısı uygulamada yok. Margin'i yeniden yükle."
+            "value": "Claude yardımcısı uygulamada yok. Anthology'yi yeniden yükle."
           }
         }
       }
@@ -472,12 +472,12 @@
         }
       }
     },
-    "Margin is busy saving from another window or chat. Try again in a moment.": {
+    "Anthology is busy saving from another window or chat. Try again in a moment.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin başka bir pencereden ya da sohbetten kaydediyor. Birazdan tekrar dene."
+            "value": "Anthology başka bir pencereden ya da sohbetten kaydediyor. Birazdan tekrar dene."
           }
         }
       }
@@ -522,12 +522,12 @@
         }
       }
     },
-    "Lock Margin with %@": {
+    "Lock Anthology with %@": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'i %@ ile kilitle"
+            "value": "Anthology'yi %@ ile kilitle"
           }
         }
       }
@@ -592,12 +592,12 @@
         }
       }
     },
-    "Margin also locks when your Mac sleeps.": {
+    "Anthology also locks when your Mac sleeps.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mac uyku moduna geçince Margin de kilitlenir."
+            "value": "Mac uyku moduna geçince Anthology de kilitlenir."
           }
         }
       }
@@ -622,22 +622,22 @@
         }
       }
     },
-    "Open Margin at login": {
+    "Open Anthology at login": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oturum açılınca Margin'i başlat"
+            "value": "Oturum açılınca Anthology'yi başlat"
           }
         }
       }
     },
-    "Notifications are silent. Margin keeps running in the menu bar after you close its window, so it can tell you about changes.": {
+    "Notifications are silent. Anthology keeps running in the menu bar after you close its window, so it can tell you about changes.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bildirimler sessizdir. Penceresini kapatsan da Margin menü çubuğunda çalışmaya devam eder; böylece değişiklikleri sana haber verebilir."
+            "value": "Bildirimler sessizdir. Penceresini kapatsan da Anthology menü çubuğunda çalışmaya devam eder; böylece değişiklikleri sana haber verebilir."
           }
         }
       }
@@ -772,12 +772,12 @@
         }
       }
     },
-    "Margin is locked": {
+    "Anthology is locked": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin kilitli"
+            "value": "Anthology kilitli"
           }
         }
       }
@@ -992,12 +992,12 @@
         }
       }
     },
-    "Lock Margin": {
+    "Lock Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'i Kilitle"
+            "value": "Anthology'yi Kilitle"
           }
         }
       }
@@ -1032,22 +1032,22 @@
         }
       }
     },
-    "Start using Margin": {
+    "Start using Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'i kullanmaya başla"
+            "value": "Anthology'yi kullanmaya başla"
           }
         }
       }
     },
-    "Welcome to Margin": {
+    "Welcome to Anthology": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Margin'e hoş geldin"
+            "value": "Anthology'ye hoş geldin"
           }
         }
       }
@@ -1152,12 +1152,12 @@
         }
       }
     },
-    "One click. Margin adds itself to Claude; Gemini CLI, Cursor, VS Code and Codex are in Settings.": {
+    "One click. Anthology adds itself to Claude; Gemini CLI, Cursor, VS Code and Codex are in Settings.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tek tık. Margin kendini Claude'a ekler; Gemini CLI, Cursor, VS Code ve Codex Ayarlar'da."
+            "value": "Tek tık. Anthology kendini Claude'a ekler; Gemini CLI, Cursor, VS Code ve Codex Ayarlar'da."
           }
         }
       }
@@ -1212,12 +1212,12 @@
         }
       }
     },
-    "Your notes are plain Markdown files on your Mac. Every AI change can be undone, and you can lock Margin with Touch ID in Settings.": {
+    "Your notes are plain Markdown files on your Mac. Every AI change can be undone, and you can lock Anthology with Touch ID in Settings.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notların Mac'inde düz Markdown dosyaları olarak durur. Yapay zekânın her değişikliği geri alınabilir; Ayarlar'dan Margin'i Touch ID ile kilitleyebilirsin."
+            "value": "Notların Mac'inde düz Markdown dosyaları olarak durur. Yapay zekânın her değişikliği geri alınabilir; Ayarlar'dan Anthology'yi Touch ID ile kilitleyebilirsin."
           }
         }
       }
@@ -1250,12 +1250,12 @@
         }
       }
     },
-    "Ask Claude to save something to Margin on your Mac. It appears here in seconds.": {
+    "Ask Claude to save something to Anthology on your Mac. It appears here in seconds.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mac'inde Claude'a Margin'e bir şey kaydetmesini söyle. Birkaç saniye içinde burada görünür."
+            "value": "Mac'inde Claude'a Anthology'ye bir şey kaydetmesini söyle. Birkaç saniye içinde burada görünür."
           }
         }
       }
@@ -1380,12 +1380,122 @@
         }
       }
     },
-    "To save from chat, connect Claude in Margin for Mac. Your notes are plain Markdown files in iCloud Drive › Margin.": {
+    "To save from chat, connect Claude in Anthology for Mac. Your notes are plain Markdown files in iCloud Drive › Anthology.": {
       "localizations": {
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sohbetten kaydetmek için Claude'u Mac'teki Margin'den bağla. Notların iCloud Drive › Margin içinde düz Markdown dosyaları olarak durur."
+            "value": "Sohbetten kaydetmek için Claude'u Mac'teki Anthology'den bağla. Notların iCloud Drive › Anthology içinde düz Markdown dosyaları olarak durur."
+          }
+        }
+      }
+    },
+    "More": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diğer"
+          }
+        }
+      }
+    },
+    "Search all notes (⌘K)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm notlarda ara (⌘K)"
+          }
+        }
+      }
+    },
+    "Quick note (⌥⌘M)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hızlı not (⌥⌘M)"
+          }
+        }
+      }
+    },
+    "New note (⌘N)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeni not (⌘N)"
+          }
+        }
+      }
+    },
+    "Show the desktop behind the window": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Masaüstünü pencerenin arkasında göster"
+          }
+        }
+      }
+    },
+    "Light Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık Mod"
+          }
+        }
+      }
+    },
+    "Dark Mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koyu Mod"
+          }
+        }
+      }
+    },
+    "Switch to light mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık moda geç"
+          }
+        }
+      }
+    },
+    "Switch to dark mode": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koyu moda geç"
+          }
+        }
+      }
+    },
+    "Edited by %@": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ düzenledi"
+          }
+        }
+      }
+    },
+    "Connected through the Anthology plugin": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anthology eklentisiyle bağlı"
           }
         }
       }

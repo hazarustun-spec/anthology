@@ -4,7 +4,7 @@ import Foundation
 /// Edits the `mcpServers` section of a Claude config file (Claude Desktop's
 /// `claude_desktop_config.json` or Claude Code's `~/.claude.json`) without touching anything else.
 public enum MCPConfigFile {
-    public static let serverName = "margin"
+    public static let serverName = "anthology"
 
     public enum Status: Equatable, Sendable {
         case connected, notConnected, differentBinary, unreadable
@@ -14,7 +14,7 @@ public enum MCPConfigFile {
         case malformed(String)
         public var errorDescription: String? {
             switch self {
-            case .malformed(let path): "This config file isn't valid JSON, so Margin left it untouched: \(path)"
+            case .malformed(let path): "This config file isn't valid JSON, so Anthology left it untouched: \(path)"
             }
         }
     }
@@ -49,7 +49,7 @@ public enum MCPConfigFile {
         try write(root, to: url)
     }
 
-    static func read(_ url: URL) throws -> [String: Any] {
+    public static func read(_ url: URL) throws -> [String: Any] {
         let data = try Data(contentsOf: url)
         if data.isEmpty { return [:] }
         guard let object = try? JSONSerialization.jsonObject(with: data), let dict = object as? [String: Any] else {
@@ -67,19 +67,19 @@ public enum MCPConfigFile {
     static func backup(_ url: URL) throws {
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         let stamp = Date().formatted(.iso8601.year().month().day().time(includingFractionalSeconds: false)).replacingOccurrences(of: ":", with: "")
-        let dest = url.deletingLastPathComponent().appendingPathComponent("\(url.lastPathComponent).margin-backup-\(stamp)")
+        let dest = url.deletingLastPathComponent().appendingPathComponent("\(url.lastPathComponent).anthology-backup-\(stamp)")
         if !FileManager.default.fileExists(atPath: dest.path) {
             try FileManager.default.copyItem(at: url, to: dest)
         }
     }
 }
 
-/// Where Claude's config files and Margin's installed helper live.
+/// Where Claude's config files and Anthology's installed helper live.
 public enum ClaudePaths {
     static var home: URL { URL(fileURLWithPath: NSHomeDirectory()) }
     public static var desktopConfig: URL { home.appendingPathComponent("Library/Application Support/Claude/claude_desktop_config.json") }
     public static var claudeCodeConfig: URL { home.appendingPathComponent(".claude.json") }
-    public static var installedHelper: URL { home.appendingPathComponent("Library/Application Support/Margin/bin/margin-mcp") }
+    public static var installedHelper: URL { home.appendingPathComponent("Library/Application Support/Anthology/bin/anthology-mcp") }
 
     /// The `claude` CLI: PATH-style locations first, then the copy Claude Desktop ships.
     public static func claudeCLI() -> URL? {
@@ -100,9 +100,9 @@ public enum ClaudePaths {
 }
 
 
-/// Minimal, conservative editor for Codex's `~/.codex/config.toml`: owns only the `[mcp_servers.margin]` table.
+/// Minimal, conservative editor for Codex's `~/.codex/config.toml`: owns only the `[mcp_servers.anthology]` table.
 public enum CodexConfig {
-    static let header = "[mcp_servers.margin]"
+    static let header = "[mcp_servers.anthology]"
 
     public static var defaultURL: URL {
         URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".codex/config.toml")
@@ -112,7 +112,7 @@ public enum CodexConfig {
         "\"" + s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
     }
 
-    /// Splits the file into (before, ourTable, after) by the `[mcp_servers.margin]` header.
+    /// Splits the file into (before, ourTable, after) by the `[mcp_servers.anthology]` header.
     static func split(_ text: String) -> (String, String?, String) {
         var lines = text.components(separatedBy: "\n")
         guard let start = lines.firstIndex(where: { $0.trimmingCharacters(in: .whitespaces) == header }) else { return (text, nil, "") }

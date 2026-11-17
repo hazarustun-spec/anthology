@@ -2,7 +2,7 @@ import AppKit
 import MarginCore
 import UserNotifications
 
-/// Quiet banners (never a sound) when an AI tool changes a note while Margin is in the background.
+/// Quiet banners (never a sound) when an AI tool changes a note while Anthology is in the background.
 @MainActor
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = Notifier()

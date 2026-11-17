@@ -5,6 +5,48 @@ extension ChangeSource {
     var label: LocalizedStringKey { LocalizedStringKey(displayName) }
 
     var symbol: String { self == .app ? "person" : "sparkles" }
+
+    /// Small per-tool glyph used in the line gutter; nil for the user's own lines (kept unmarked).
+    var lineSymbol: String? {
+        switch self {
+        case .app: nil
+        case .claudeCode: "terminal"
+        case .cowork: "sparkles"
+        case .gemini: "sparkle"
+        case .cursor: "cursorarrow"
+        case .vscode: "curlybraces"
+        case .codex: "hexagon"
+        }
+    }
+}
+
+/// Per-line authorship for the editor, aligned to the editor's current lines.
+enum LineAuthors {
+    /// Maps saved attribution onto `text`'s lines; lines not in the saved version (fresh typing) get nil.
+    static func align(_ attribution: [LineAttribution], to text: String) -> [LineAttribution?] {
+        let lines = text.components(separatedBy: "\n")
+        guard !attribution.isEmpty, lines.count < 3000, attribution.count < 3000 else {
+            return Array(repeating: nil, count: lines.count)
+        }
+        let matches = MarginStore.lcsMatches(attribution.map(\.text), lines)
+        return matches.map { $0.map { attribution[$0] } }
+    }
+
+    /// Icon strength fades with age: recent changes stand out, old ones recede.
+    static func opacity(for date: Date?, now: Date = .now) -> Double {
+        guard let date else { return 0.35 }
+        let age = now.timeIntervalSince(date)
+        if age < 86_400 { return 0.9 }
+        if age < 7 * 86_400 { return 0.6 }
+        return 0.35
+    }
+
+    static func tooltip(_ a: LineAttribution, now: Date = .now) -> String {
+        let who = a.source?.displayName ?? String(localized: "Unknown")
+        guard let date = a.date else { return who }
+        let when = RelativeDateTimeFormatter().localizedString(for: date, relativeTo: now)
+        return "\(who) · \(when)"
+    }
 }
 
 extension ChangeSource {
@@ -21,23 +63,22 @@ extension ChangeSource {
     }
 }
 
+/// Quiet "Edited by Codex · 20 seconds ago" caption under a note's title; opens the history.
 struct SourceBadge: View {
     let entry: HistoryEntry
+    @State private var hovering = false
 
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: entry.by.symbol).foregroundStyle(Color(palette: Palette.accent))
-            Text(entry.by.label)
-            Text("·")
-            Text(entry.summary).lineLimit(1)
+        HStack(spacing: 4) {
+            Text("Edited by \(entry.by.displayName)")
             Text("·")
             Text(entry.at, format: .relative(presentation: .named))
-            Image(systemName: "chevron.down").font(.system(size: 9))
         }
         .font(.system(size: 12))
-        .foregroundStyle(Color(palette: Palette.secondary))
-        .padding(.horizontal, 11).padding(.vertical, 5)
-        .background(Capsule().fill(Color(palette: Palette.chip)))
+        .foregroundStyle(hovering ? Color(palette: Palette.text) : Color(palette: Palette.secondary))
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .help(Text(entry.summary))
     }
 }
 
@@ -54,13 +95,13 @@ struct HistoryList: View {
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: e.by.symbol).foregroundStyle(Color(palette: e.by == .app ? Palette.secondary : Palette.accent)).frame(width: 16)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(e.summary).foregroundStyle(Color(palette: Palette.text))
+                            Text(e.summary).foregroundStyle(.primary)
                             HStack(spacing: 4) {
                                 Text(e.by.label)
                                 Text("·")
                                 Text(e.at, format: .dateTime.day().month().hour().minute())
                             }
-                            .font(.system(size: 11)).foregroundStyle(Color(palette: Palette.tertiary))
+                            .font(.system(size: 11)).foregroundStyle(.tertiary)
                         }
                         Spacer(minLength: 6)
                         if e.rev > 1, canRestore(e.rev) {

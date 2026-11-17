@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// `Margin --snapshot <out.png> [--after <seconds>]` renders the main window offscreen to a PNG and quits.
+/// `Anthology --snapshot <out.png> [--after <seconds>]` renders the main window offscreen to a PNG and quits.
 /// Used for docs/README images and for verifying UI without screen-recording permission.
 enum Snapshot {
     static var request: (url: URL, delay: Double)? {

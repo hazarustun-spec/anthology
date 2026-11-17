@@ -226,6 +226,18 @@ without consent; write in the language the user is speaking.
   badge ("Cowork · Added SQL and system design").
 - (Briefly built as "Ink"/option B by mistake; Hazar corrected to C.)
 
+## 7.2 Liquid Glass "Ambient" (Hazar's pick, 2026-11-16)
+- A slowly drifting sage / amber / sky mesh gradient backs every screen (deep green-navy in dark mode);
+  falls back to a flat canvas with Reduce Transparency and stops moving with Reduce Motion.
+- Sidebar, note cards, topic tiles, the editor sheet, palettes and banners are Liquid Glass panels
+  floating on it (with a light fill for legibility). Toolbars use system glass.
+
+## 7.3 Professional / simple (Hazar, 2026-11-16) — supersedes 7.2
+- Readability first: calm solid canvas, plain cards with hairline borders, the editor is a clean
+  page. No animated backdrop, no glass content panels, no glare.
+- System Liquid Glass stays only where Apple puts it (toolbar, sidebar, search palette, sheets).
+- Mac "Show the desktop behind the window" remains as an opt-in setting (off by default).
+
 ## 8. Left to the builder
 
 Exact visual design (within §6.5 direction; mockups shown to Hazar before

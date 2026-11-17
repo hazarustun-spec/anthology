@@ -11,6 +11,8 @@ typealias TextStorageEditActions = NSTextStorage.EditActions
 final class MarkdownStyler: NSObject, NSTextStorageDelegate {
     var bodyFont = Palette.sans(15)
     var freshLines: Set<String> = []
+    /// Paragraph holding the caret: its Markdown markers stay visible so they can be edited.
+    var activeParagraph: NSRange?
 
     private static let heading = try! NSRegularExpression(pattern: "^(#{1,3})\\s+.*$", options: [.anchorsMatchLines])
     private static let bullet = try! NSRegularExpression(pattern: "^(\\s*)([-*+]|\\d+\\.)\\s", options: [.anchorsMatchLines])
@@ -64,7 +66,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
             p.paragraphSpacingBefore = level == 1 ? 6 : 8
             p.paragraphSpacing = 4
             storage.addAttributes([.font: font, .foregroundColor: color, .paragraphStyle: p], range: m.range)
-            storage.addAttribute(.foregroundColor, value: Palette.tertiary.withAlphaComponent(0.6), range: m.range(at: 1))
+            hideMarker(storage, NSRange(location: m.range(at: 1).location, length: m.range(at: 1).length + 1))
         }
         Self.bullet.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
@@ -94,13 +96,13 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
             guard let m else { return }
             let font = (storage.attribute(.font, at: m.range.location, effectiveRange: nil) as? PlatformFont) ?? bodyFont
             storage.addAttribute(.font, value: font.adding(bold: true), range: m.range)
-            dimMarkers(storage, m.range, 2)
+            hideMarkers(storage, m.range, 2)
         }
         Self.italic.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
             let font = (storage.attribute(.font, at: m.range.location, effectiveRange: nil) as? PlatformFont) ?? bodyFont
             storage.addAttribute(.font, value: font.adding(italic: true), range: m.range)
-            dimMarkers(storage, m.range, 1)
+            hideMarkers(storage, m.range, 1)
         }
         Self.code.enumerateMatches(in: storage.string, range: range) { m, _, _ in
             guard let m else { return }
@@ -108,6 +110,7 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
                 .font: PlatformFont.monospacedSystemFont(ofSize: 13.5, weight: .regular),
                 .backgroundColor: Palette.codeBG, .foregroundColor: Palette.text,
             ], range: m.range)
+            hideMarkers(storage, m.range, 1)
         }
         if !freshLines.isEmpty {
             text.enumerateSubstrings(in: range, options: .byLines) { line, lineRange, _, _ in
@@ -126,14 +129,44 @@ final class MarkdownStyler: NSObject, NSTextStorageDelegate {
         storage.addAttribute(.paragraphStyle, value: p, range: line)
     }
 
-    private func dimMarkers(_ storage: NSTextStorage, _ range: NSRange, _ width: Int) {
+    private func hideMarkers(_ storage: NSTextStorage, _ range: NSRange, _ width: Int) {
         guard range.length > width * 2 else { return }
-        let faint: [NSAttributedString.Key: Any] = [
-            .foregroundColor: Palette.tertiary.withAlphaComponent(0.45),
-            .font: Palette.sans(bodyFont.pointSize * 0.8),
-        ]
-        storage.addAttributes(faint, range: NSRange(location: range.location, length: width))
-        storage.addAttributes(faint, range: NSRange(location: NSMaxRange(range) - width, length: width))
+        hideMarker(storage, NSRange(location: range.location, length: width))
+        hideMarker(storage, NSRange(location: NSMaxRange(range) - width, length: width))
+    }
+
+    /// Markdown syntax (`##`, `**`, backticks) is collapsed to zero width and made invisible,
+    /// except on the caret's paragraph where it shows faintly for editing. The file stays plain Markdown.
+    private func hideMarker(_ storage: NSTextStorage, _ range: NSRange) {
+        if let active = activeParagraph, NSIntersectionRange(active, range).length > 0 || (range.location >= active.location && range.location < NSMaxRange(active)) {
+            storage.addAttributes([
+                .foregroundColor: Palette.tertiary.withAlphaComponent(0.55),
+                .font: Palette.sans(bodyFont.pointSize * 0.85),
+                .backgroundColor: PlatformColor.clear,
+            ], range: range)
+        } else {
+            storage.addAttributes([
+                .foregroundColor: PlatformColor.clear,
+                .font: Palette.sans(0.01),
+                .backgroundColor: PlatformColor.clear,
+            ], range: range)
+        }
+    }
+
+    /// Moves the "markers visible" paragraph to the one holding `selection`; restyles only the two affected paragraphs.
+    func caretMoved(to selection: NSRange?, in storage: NSTextStorage) {
+        let text = storage.string as NSString
+        let next = selection.flatMap { sel in
+            text.length == 0 ? nil : text.paragraphRange(for: NSRange(location: min(sel.location, text.length), length: 0))
+        }
+        guard next != activeParagraph else { return }
+        let previous = activeParagraph
+        activeParagraph = next
+        storage.beginEditing()
+        for r in [previous, next].compactMap({ $0 }) where NSMaxRange(r) <= text.length {
+            style(storage, in: r)
+        }
+        storage.endEditing()
     }
 
     /// If `index` falls on a checkbox marker, returns the range of the character between the brackets.

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# End-to-end smoke test for the margin-mcp stdio server.
+# End-to-end smoke test for the anthology-mcp stdio server.
 set -euo pipefail
 cd "$(dirname "$0")/../MarginKit"
-swift build -c release --product margin-mcp >/dev/null
-BIN="$(swift build -c release --show-bin-path)/margin-mcp"
+swift build -c release --product anthology-mcp >/dev/null
+BIN="$(swift build -c release --show-bin-path)/anthology-mcp"
 ROOT="$(mktemp -d)"
 OUT="$ROOT/out.txt"
 
@@ -23,4 +23,4 @@ grep -q '"instructions"' "$OUT" || fail "initialize has no instructions"
 grep -q '"save_note"' "$OUT" || fail "tools/list missing save_note"
 grep -q 'Saved to Kariyer › Skills' "$OUT" || fail "save_note did not save"
 ls "$ROOT"/kariyer-*/skills.md >/dev/null 2>&1 || fail "note file not on disk"
-echo "PASS: margin-mcp smoke"
+echo "PASS: anthology-mcp smoke"

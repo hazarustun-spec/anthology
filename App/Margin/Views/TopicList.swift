@@ -11,29 +11,26 @@ struct TopicList: View {
 
     var body: some View {
         @Bindable var library = library
-        ScrollView {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Topics")
-                    .font(.system(size: 11, weight: .medium)).foregroundStyle(Color(palette: Palette.tertiary))
-                    .padding(.horizontal, 10).padding(.bottom, 6)
+        List(selection: Binding(get: { library.selectedTopicID }, set: { library.selectTopic($0) })) {
+            Section("Topics") {
                 ForEach(library.topics) { topic in
-                    row(topic)
+                    row(topic).tag(topic.id)
                 }
                 if addingTopic {
                     TextField("New topic", text: $draftTitle)
-                        .textFieldStyle(.plain).padding(8)
                         .onSubmit { library.createTopic(title: draftTitle); addingTopic = false }
                 }
             }
-            .padding(.horizontal, 10).padding(.top, 8)
         }
-        .scrollContentBackground(.hidden)
-        .background(Color(palette: Palette.sidebar))
-        .overlay(alignment: .bottomLeading) {
-            Button { draftTitle = ""; addingTopic = true } label: {
-                Label("New topic", systemImage: "plus").font(.system(size: 12))
+        .listStyle(.sidebar)
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                Button { draftTitle = ""; addingTopic = true } label: { Label("New topic", systemImage: "plus") }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
+                Spacer()
             }
-            .buttonStyle(.plain).foregroundStyle(Color(palette: Palette.secondary)).padding(14)
+            .padding(12)
         }
         .animation(.spring(duration: 0.35), value: library.freshNotes)
     }
@@ -42,35 +39,26 @@ struct TopicList: View {
     private func row(_ topic: Topic) -> some View {
         let selected = library.selectedTopicID == topic.id
         HStack(spacing: 8) {
-            Image(systemName: topic.icon ?? "folder")
-                .symbolVariant(selected ? .fill : .none)
-                .font(.system(size: 12)).foregroundStyle(TopicStyle.color(topic.color))
-                .frame(width: 16)
+            // Selected rows let the system pick the icon color so it stays legible on the highlight.
+            if selected {
+                Image(systemName: topic.icon ?? "folder")
+            } else {
+                Image(systemName: topic.icon ?? "folder").foregroundStyle(TopicStyle.color(topic.color))
+            }
             if renaming == topic.id {
-                TextField("", text: $draftTitle).textFieldStyle(.plain)
+                TextField("", text: $draftTitle)
                     .onSubmit { library.renameTopic(topic.id, to: draftTitle); renaming = nil }
             } else {
-                Text(topic.title).lineLimit(1).foregroundStyle(Color(palette: Palette.text))
+                Text(topic.title).lineLimit(1)
             }
             Spacer(minLength: 4)
             if library.topicHasFresh(topic.id) {
                 Circle().fill(Color(palette: Palette.accent)).frame(width: 6, height: 6)
                     .transition(.scale.combined(with: .opacity))
             }
-            Text("\(library.notes(for: topic.id).count)")
-                .font(.system(size: 11)).monospacedDigit().foregroundStyle(Color(palette: Palette.tertiary))
         }
-        .font(.system(size: 13))
-        .padding(.horizontal, 10).padding(.vertical, 7)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(palette: dropTarget == topic.id ? Palette.accentWash : selected ? Palette.card : .clear))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color(palette: dropTarget == topic.id ? Palette.accentBorder : selected ? Palette.hairline : .clear), lineWidth: dropTarget == topic.id ? 1.5 : 0.5))
-        )
-        .scaleEffect(dropTarget == topic.id ? 1.03 : 1)
-        .animation(.spring(duration: 0.25), value: dropTarget)
-        .contentShape(Rectangle())
-        .onTapGesture { library.selectTopic(topic.id) }
+        .badge(library.notes(for: topic.id).count)
+        .listRowBackground(dropTarget == topic.id ? RoundedRectangle(cornerRadius: 8).fill(Color(palette: Palette.accentWash)) : nil)
         .dropDestination(for: String.self) { ids, _ in
             for id in ids { library.moveNote(id, to: topic.id) }
             return !ids.isEmpty
@@ -82,6 +70,8 @@ struct TopicList: View {
             Button("Rename") { draftTitle = topic.title; renaming = topic.id }
             Button("Icon and color…") { styling = topic.id }
             Button("New note") { library.createNote(in: topic.id) }
+            Divider()
+            Button("Move to Trash", role: .destructive) { library.trashTopic(topic.id) }
         }
     }
 }

@@ -20,7 +20,7 @@ public struct NoteMeta: Codable, Equatable, Sendable {
 public struct NoteFile: Equatable, Sendable {
     public var meta: NoteMeta
     public var body: String
-    /// Front-matter lines Margin does not own (e.g. `tags:` added in Obsidian). Written back verbatim.
+    /// Front-matter lines Anthology does not own (e.g. `tags:` added in Obsidian). Written back verbatim.
     public var extraFrontMatter: [String]
     /// Former titles, so Claude can still find a note by the name it used before a rename.
     public var aliases: [String]
@@ -59,7 +59,7 @@ public struct NoteFile: Equatable, Sendable {
             if let colon = line.firstIndex(of: ":") {
                 let key = line[..<colon].trimmingCharacters(in: .whitespaces)
                 let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
-                // Only claim `aliases` when it is Margin's JSON list; other tools' YAML stays untouched.
+                // Only claim `aliases` when it is Anthology's JSON list; other tools' YAML stays untouched.
                 let isOurs = key != "aliases" || (value.hasPrefix("[\"") || value == "[]") && !unquoteList(value).isEmpty || value == "[]"
                 if ownKeys.contains(key), isOurs, fields[key] == nil, !line.hasPrefix(" ") {
                     fields[key] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)

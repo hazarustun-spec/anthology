@@ -36,19 +36,17 @@ final class QuickCaptureController {
 
     private func makePanel() -> NSPanel {
         let panel = KeyablePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 172),
-            styleMask: [.titled, .fullSizeContentView, .nonactivatingPanel],
+            contentRect: NSRect(x: 0, y: 0, width: 600, height: 190),
+            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered, defer: false
         )
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
         panel.isMovableByWindowBackground = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.hidesOnDeactivate = true
-        panel.standardWindowButton(.closeButton)?.isHidden = true
-        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        panel.standardWindowButton(.zoomButton)?.isHidden = true
         return panel
     }
 }
@@ -93,9 +91,10 @@ struct QuickCaptureView: View {
             Text("\(library.topics.first { $0.id == topicID }?.title ?? "") › \(MarginTools.quickNoteTitle)")
                 .font(.system(size: 11)).foregroundStyle(.tertiary)
         }
-        .padding(20)
+        .padding(22)
         .frame(width: 560)
-        .background(Color(palette: Palette.card))
+        .glassEffect(.regular, in: .rect(cornerRadius: 26))
+        .padding(20)
         .onAppear {
             topicID = library.topics.first { $0.id == lastTopic }?.id ?? library.selectedTopicID ?? library.topics.first?.id
             focused = true

@@ -113,20 +113,20 @@ struct ClientConfigTests {
         try MCPConfigFile.install(at: url, entry: ["type": "stdio", "command": "/m"], key: "servers")
         #expect(MCPConfigFile.status(at: url, binary: "/m", key: "servers") == .connected)
         let root = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
-        #expect((root["servers"] as! [String: Any]).keys.sorted() == ["margin", "other"])
+        #expect((root["servers"] as! [String: Any]).keys.sorted() == ["anthology", "other"])
     }
 
     @Test func codexTomlInstallReplaceRemove() throws {
         let original = "model = \"o3\"\n\n[mcp_servers.other]\ncommand = \"x\"\n\n[profiles.fast]\nmodel = \"mini\"\n"
         let url = try file("config.toml", original)
-        try CodexConfig.install(at: url, command: "/Users/a b/margin-mcp", args: ["--source", "codex"])
-        try CodexConfig.install(at: url, command: "/Users/a b/margin-mcp", args: ["--source", "codex"])
+        try CodexConfig.install(at: url, command: "/Users/a b/anthology-mcp", args: ["--source", "codex"])
+        try CodexConfig.install(at: url, command: "/Users/a b/anthology-mcp", args: ["--source", "codex"])
         let text = try String(contentsOf: url, encoding: .utf8)
-        #expect(text.components(separatedBy: "[mcp_servers.margin]").count == 2)
-        #expect(text.contains("command = \"/Users/a b/margin-mcp\""))
+        #expect(text.components(separatedBy: "[mcp_servers.anthology]").count == 2)
+        #expect(text.contains("command = \"/Users/a b/anthology-mcp\""))
         #expect(text.contains("args = [\"--source\", \"codex\"]"))
         #expect(text.contains("[profiles.fast]\nmodel = \"mini\""))
-        #expect(CodexConfig.status(at: url, command: "/Users/a b/margin-mcp") == .connected)
+        #expect(CodexConfig.status(at: url, command: "/Users/a b/anthology-mcp") == .connected)
         try CodexConfig.remove(at: url)
         #expect(try String(contentsOf: url, encoding: .utf8) == original)
     }

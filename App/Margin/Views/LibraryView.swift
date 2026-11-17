@@ -5,6 +5,7 @@ struct LibraryView: View {
     @Environment(LibraryModel.self) private var library
 
     var snapshotLayout = false
+    @AppStorage(WindowLook.transparentKey) private var transparentWindow = false
 
     var body: some View {
         if snapshotLayout {
@@ -21,8 +22,8 @@ struct LibraryView: View {
                 .overlay(alignment: .top) {
                     if library.showSearch {
                         ZStack(alignment: .top) {
-                            Color.black.opacity(0.18).ignoresSafeArea().onTapGesture { library.showSearch = false }
-                            SearchPalette(isPresented: Bindable(library).showSearch).padding(.top, 90)
+                            Color.black.opacity(0.08).ignoresSafeArea().onTapGesture { library.showSearch = false }
+                            SearchPalette(isPresented: Bindable(library).showSearch).padding(.top, 70)
                         }
                         .transition(.opacity)
                     }
@@ -37,11 +38,38 @@ struct LibraryView: View {
                 .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 300)
         } content: {
             NoteList()
-                .navigationSplitViewColumnWidth(min: 230, ideal: 270, max: 360)
+                .navigationSplitViewColumnWidth(min: 240, ideal: 290, max: 380)
+                .navigationTitle(library.topics.first { $0.id == library.selectedTopicID }?.title ?? "Anthology")
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { if let t = library.selectedTopicID { library.createNote(in: t) } } label: {
+                            Label("New Note", systemImage: "square.and.pencil")
+                        }
+                        .help("New note (⌘N)")
+                    }
+                }
         } detail: {
             detail
+                .toolbar {
+                    ToolbarSpacer(.flexible, placement: .primaryAction)
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        AppearanceToggle()
+                        Button { QuickCaptureController.shared.show() } label: { Label("Quick Note", systemImage: "text.append") }
+                            .help("Quick note (⌥⌘M)")
+                        Button { library.showSearch = true } label: { Label("Search Notes", systemImage: "magnifyingglass") }
+                            .help("Search all notes (⌘K)")
+                    }
+                    ToolbarSpacer(.fixed, placement: .primaryAction)
+                    ToolbarItem(placement: .primaryAction) {
+                        if let note = library.note(library.selectedNoteID) {
+                            Menu { NoteMenu(note: note) } label: { Label("More", systemImage: "ellipsis") }
+                                .menuIndicator(.hidden)
+                        }
+                    }
+                }
         }
-        .background(Color(palette: Palette.canvas))
+        .containerBackground(for: .window) { WindowBackdrop() }
+        .background(WindowConfigurator(transparent: transparentWindow))
     }
 
     @ViewBuilder
@@ -49,7 +77,7 @@ struct LibraryView: View {
         if let id = library.selectedNoteID, library.note(id) != nil {
             NoteDetail(noteID: id).id(id)
         } else {
-            EmptyState(symbol: "text.alignleft", title: "No note selected", message: "Pick a note, or ask Claude to save something to Margin.")
+            EmptyState(symbol: "text.alignleft", title: "No note selected", message: "Pick a note, or ask Claude to save something to Anthology.")
         }
     }
 }
@@ -61,11 +89,10 @@ struct EmptyState: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Image(systemName: symbol).font(.system(size: 26, weight: .light)).foregroundStyle(Color(palette: Palette.tertiary))
-            Text(title).font(.system(size: 15, weight: .medium)).foregroundStyle(Color(palette: Palette.secondary))
-            Text(message).font(.callout).foregroundStyle(Color(palette: Palette.tertiary)).multilineTextAlignment(.center).frame(maxWidth: 260)
+            Image(systemName: symbol).font(.system(size: 26, weight: .light)).foregroundStyle(.tertiary)
+            Text(title).font(.system(size: 15, weight: .medium)).foregroundStyle(.secondary)
+            Text(message).font(.callout).foregroundStyle(.tertiary).multilineTextAlignment(.center).frame(maxWidth: 260)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(palette: Palette.canvas))
     }
 }

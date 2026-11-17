@@ -10,3 +10,4 @@ App/Local.xcconfig
 .build-*/
 App/Margin/Info.plist
 App/MarginMobile/Info.plist
+build/

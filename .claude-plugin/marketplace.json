@@ -1,0 +1,14 @@
+{
+  "name": "anthology",
+  "owner": {
+    "name": "Hazar Ustun"
+  },
+  "description": "Anthology: the notes app your AI tools write into.",
+  "plugins": [
+    {
+      "name": "anthology",
+      "source": "./plugins/anthology",
+      "description": "Save what matters from your Claude Code chats into Anthology, the Mac + iPhone notes app your AI tools write into."
+    }
+  ]
+}

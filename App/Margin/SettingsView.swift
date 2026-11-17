@@ -22,6 +22,7 @@ private struct GeneralSettings: View {
     @AppStorage("appearance") private var appearance: AppearanceChoice = .system
     @AppStorage(AppLock.timeoutKey) private var lockAfter = 5
     @AppStorage(Notifier.enabledKey) private var notify = true
+    @AppStorage(WindowLook.transparentKey) private var transparentWindow = false
     @State private var lockOn = UserDefaults.standard.bool(forKey: AppLock.enabledKey)
     @State private var openAtLogin = SMAppService.mainApp.status == .enabled
     @Environment(AppLock.self) private var lock
@@ -33,9 +34,10 @@ private struct GeneralSettings: View {
                     ForEach(AppearanceChoice.allCases) { Text($0.label).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                Toggle("Show the desktop behind the window", isOn: $transparentWindow)
             }
             Section {
-                Toggle("Lock Margin with \(AppLock.biometryName)", isOn: Binding(get: { lockOn }, set: { new in
+                Toggle("Lock Anthology with \(AppLock.biometryName)", isOn: Binding(get: { lockOn }, set: { new in
                     lock.setEnabled(new) { ok in lockOn = ok ? new : lockOn }
                 }))
                 if lockOn {
@@ -48,16 +50,16 @@ private struct GeneralSettings: View {
                     }
                 }
             } header: { Text("Privacy") } footer: {
-                Text("Margin also locks when your Mac sleeps.").font(.callout).foregroundStyle(.secondary)
+                Text("Anthology also locks when your Mac sleeps.").font(.callout).foregroundStyle(.secondary)
             }
             Section {
                 Toggle("Notify when an AI tool changes a note", isOn: $notify)
-                Toggle("Open Margin at login", isOn: Binding(get: { openAtLogin }, set: { new in
+                Toggle("Open Anthology at login", isOn: Binding(get: { openAtLogin }, set: { new in
                     do { if new { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } } catch {}
                     openAtLogin = SMAppService.mainApp.status == .enabled
                 }))
             } header: { Text("Background") } footer: {
-                Text("Notifications are silent. Margin keeps running in the menu bar after you close its window, so it can tell you about changes.")
+                Text("Notifications are silent. Anthology keeps running in the menu bar after you close its window, so it can tell you about changes.")
                     .font(.callout).foregroundStyle(.secondary)
             }
         }
@@ -75,7 +77,7 @@ private struct ConnectionSettings: View {
         Form {
             Section {
                 ConnectionRow(title: "Claude Code", detail: "Code tab in the Claude app, and the terminal", symbol: "chevron.left.forwardslash.chevron.right", client: .claudeCode, connection: connection)
-                ConnectionRow(title: "Claude Desktop and Cowork", detail: "Claude restarts once to load Margin", symbol: "sparkles", client: .claudeDesktop, connection: connection)
+                ConnectionRow(title: "Claude Desktop and Cowork", detail: "Claude restarts once to load Anthology", symbol: "sparkles", client: .claudeDesktop, connection: connection)
             } header: { Text("Claude") }
             Section {
                 ConnectionRow(title: "Gemini CLI", detail: "~/.gemini/settings.json", symbol: "diamond", client: .geminiCLI, connection: connection)
@@ -118,14 +120,20 @@ struct ConnectionRow: View {
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color(palette: Palette.accentWash)))
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 13, weight: .medium))
-                Text(detail).font(.system(size: 11)).foregroundStyle(.secondary)
+                if client == .claudeCode && connection.claudeCodeViaPlugin {
+                    Text("Connected through the Anthology plugin").font(.system(size: 11)).foregroundStyle(.secondary)
+                } else {
+                    Text(detail).font(.system(size: 11)).foregroundStyle(.secondary)
+                }
             }
             Spacer()
             if connection.working == client {
                 ProgressView().controlSize(.small)
             } else if status == .connected {
                 Menu {
-                    Button("Disconnect") { connection.disconnect(client) }
+                    if !(client == .claudeCode && connection.claudeCodeViaPlugin) {
+                        Button("Disconnect") { connection.disconnect(client) }
+                    }
                 } label: {
                     Label("Connected", systemImage: "checkmark.circle.fill")
                 }
@@ -135,7 +143,7 @@ struct ConnectionRow: View {
                 Text("Config file unreadable").font(.system(size: 12)).foregroundStyle(.orange)
             } else {
                 Button(status == .differentBinary ? "Update" : "Connect") { connection.connect(client) }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
             }
         }
         .padding(.vertical, 3)
