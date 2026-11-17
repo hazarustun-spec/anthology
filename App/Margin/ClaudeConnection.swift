@@ -3,7 +3,7 @@ import Foundation
 import MarginCore
 import Observation
 
-/// Installs the bundled margin-mcp helper and registers it with Claude Code and Claude Desktop.
+/// Installs the bundled anthology-mcp helper and registers it with Claude Code and Claude Desktop.
 @MainActor @Observable
 final class ClaudeConnection {
     enum Client: String, CaseIterable, Identifiable {
@@ -130,7 +130,7 @@ final class ClaudeConnection {
             try await Task.sleep(for: .milliseconds(100))
         }
         guard !running.contains(where: { !$0.isTerminated }) else {
-            throw NSError(domain: "Margin", code: 2, userInfo: [NSLocalizedDescriptionKey: String(localized: "Quit Claude, then press Connect again.")])
+            throw NSError(domain: "Anthology", code: 2, userInfo: [NSLocalizedDescriptionKey: String(localized: "Quit Claude, then press Connect again.")])
         }
         try MCPConfigFile.install(at: ClaudePaths.desktopConfig, entry: Client.claudeDesktop.entry(helper: helperPath))
         if !running.isEmpty, let appURL {
@@ -138,7 +138,7 @@ final class ClaudeConnection {
         }
     }
 
-    private var bundledHelper: URL { Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/margin-mcp") }
+    private var bundledHelper: URL { Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/anthology-mcp") }
 
     private var installedHelperMatchesBundle: Bool {
         guard let a = try? Data(contentsOf: bundledHelper, options: .mappedIfSafe),
@@ -148,10 +148,10 @@ final class ClaudeConnection {
 
     /// Copies the helper out of the app bundle to a stable path that survives moving the app.
     private func installHelper() throws {
-        guard let bundled = Bundle.main.url(forAuxiliaryExecutable: "margin-mcp")
-                ?? Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/margin-mcp") as URL?,
+        guard let bundled = Bundle.main.url(forAuxiliaryExecutable: "anthology-mcp")
+                ?? Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/anthology-mcp") as URL?,
               FileManager.default.fileExists(atPath: bundled.path) else {
-            throw NSError(domain: "Margin", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "The Claude helper is missing from the app. Reinstall Margin.")])
+            throw NSError(domain: "Anthology", code: 1, userInfo: [NSLocalizedDescriptionKey: String(localized: "The Claude helper is missing from the app. Reinstall Anthology.")])
         }
         let dest = ClaudePaths.installedHelper
         try FileManager.default.createDirectory(at: dest.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -163,8 +163,8 @@ final class ClaudeConnection {
     /// Prefers the `claude` CLI (it owns ~/.claude.json); falls back to editing the file.
     private func connectClaudeCode() async throws {
         if let cli = ClaudePaths.claudeCLI() {
-            _ = try? await run(cli, ["mcp", "remove", "margin", "--scope", "user"])
-            let ok = try await run(cli, ["mcp", "add", "--scope", "user", "margin", "--", helperPath])
+            _ = try? await run(cli, ["mcp", "remove", "anthology", "--scope", "user"])
+            let ok = try await run(cli, ["mcp", "add", "--scope", "user", "anthology", "--", helperPath])
             if ok { return }
         }
         try MCPConfigFile.install(at: ClaudePaths.claudeCodeConfig, entry: ["type": "stdio", "command": helperPath, "args": [], "env": [:]])

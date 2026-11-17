@@ -13,9 +13,9 @@ public enum MarginPaths {
             .appendingPathComponent("Documents", isDirectory: true)
     }
 
-    /// Where the Mac app records the notes folder it uses, so margin-mcp (no entitlements) finds it.
+    /// Where the Mac app records the notes folder it uses, so anthology-mcp (no entitlements) finds it.
     public static var rootPointer: URL {
-        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Margin/notes-root")
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Anthology/notes-root")
     }
 
     public static func recordRoot(_ url: URL) {
@@ -26,7 +26,7 @@ public enum MarginPaths {
     /// Notes folder used before iCloud was enabled.
     public static var localRoot: URL {
         #if os(macOS)
-        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Margin/Notes", isDirectory: true)
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Anthology/Notes", isDirectory: true)
         #else
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Notes", isDirectory: true)
         #endif

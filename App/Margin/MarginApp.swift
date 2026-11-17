@@ -22,7 +22,7 @@ struct MarginApp: App {
     }
 
     var body: some Scene {
-        Window("Margin", id: "library") {
+        Window("Anthology", id: "library") {
             LibraryView()
                 .environment(library)
                 .environment(lock)
@@ -52,17 +52,17 @@ struct MarginApp: App {
                 Button("Welcome Tour") { onboarded = false }
             }
             CommandGroup(after: .appSettings) {
-                Button("Lock Margin") { lock.lockNow() }
+                Button("Lock Anthology") { lock.lockNow() }
                     .keyboardShortcut("l", modifiers: [.command, .control])
                     .disabled(!lock.isEnabled)
             }
         }
 
-        MenuBarExtra("Margin", systemImage: "text.append") {
+        MenuBarExtra("Anthology", systemImage: "text.append") {
             Group {
                 if lock.isLocked {
                     VStack(spacing: 10) {
-                        Text("Margin is locked").font(.system(size: 13, weight: .medium))
+                        Text("Anthology is locked").font(.system(size: 13, weight: .medium))
                         Button("Unlock") { lock.unlock() }
                     }
                     .padding(20).frame(width: 240)

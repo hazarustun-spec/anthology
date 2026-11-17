@@ -15,7 +15,7 @@ struct LibrarySnapshot: Sendable {
     var activity: [ActivityItem] = []
 }
 
-/// Reads the notes folder, keeps the UI in sync with changes from Claude (margin-mcp) or iCloud,
+/// Reads the notes folder, keeps the UI in sync with changes from Claude (anthology-mcp) or iCloud,
 /// and saves the user's edits.
 @MainActor @Observable
 final class LibraryModel {
@@ -138,7 +138,7 @@ final class LibraryModel {
     func save(noteID: String, baseRevision: Int, body: String) -> SaveResult {
         guard let store else { return .failed("No notes folder") }
         do {
-            let ref = try store.updateNote(id: noteID, baseRevision: baseRevision, body: body, by: .app, summary: String(localized: "Edited in Margin"), project: nil)
+            let ref = try store.updateNote(id: noteID, baseRevision: baseRevision, body: body, by: .app, summary: String(localized: "Edited in Anthology"), project: nil)
             ownRevisions[noteID] = ref.meta.revision
             snapshot.bodies[noteID] = body
             refresh(markChanges: true)
@@ -153,7 +153,7 @@ final class LibraryModel {
     @discardableResult
     func createNote(in topicID: String) -> String? {
         guard let store else { return nil }
-        let ref = try? store.createNote(topicID: topicID, title: String(localized: "Untitled"), body: "", by: .app, summary: String(localized: "Created in Margin"), project: nil)
+        let ref = try? store.createNote(topicID: topicID, title: String(localized: "Untitled"), body: "", by: .app, summary: String(localized: "Created in Anthology"), project: nil)
         guard let ref else { return nil }
         ownRevisions[ref.meta.id] = ref.meta.revision
         refresh(markChanges: false, sync: true)
@@ -166,6 +166,13 @@ final class LibraryModel {
         guard let store, let topic = try? store.createTopic(title: title, source: nil) else { return }
         refresh(markChanges: false, sync: true)
         selectTopic(topic.id)
+    }
+
+    func trashTopic(_ id: String) {
+        guard let store, (try? store.trashTopic(id: id)) != nil else { return }
+        if selectedTopicID == id { selectedTopicID = nil; selectedNoteID = nil }
+        refresh(markChanges: false, sync: true)
+        if selectedTopicID == nil { selectTopic(topics.first?.id) }
     }
 
     func renameTopic(_ id: String, to title: String) {

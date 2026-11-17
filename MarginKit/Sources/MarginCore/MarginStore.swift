@@ -69,6 +69,28 @@ public final class MarginStore: @unchecked Sendable {
         return topic
     }
 
+    /// Removes a topic with all its notes. On the Mac it goes to the system Trash (restorable in Finder);
+    /// elsewhere, or when `systemTrash` is false, into the notes folder's own `.trash`.
+    public func trashTopic(id: String, systemTrash: Bool = true) throws {
+        try beginWrite(); defer { endWrite() }
+        let topic = try self.topic(id: id)
+        let dir = directory(of: topic)
+        #if os(macOS)
+        if systemTrash {
+            try FileManager.default.trashItem(at: dir, resultingItemURL: nil)
+            return
+        }
+        #endif
+        let trash = root.appendingPathComponent(".trash", isDirectory: true)
+        try FileManager.default.createDirectory(at: trash, withIntermediateDirectories: true)
+        var dest = trash.appendingPathComponent(topic.directoryName, isDirectory: true)
+        var n = 2
+        while FileManager.default.fileExists(atPath: dest.path) {
+            dest = trash.appendingPathComponent("\(topic.directoryName)-\(n)", isDirectory: true); n += 1
+        }
+        try FileManager.default.moveItem(at: dir, to: dest)
+    }
+
     public func setTopicAppearance(id: String, icon: String?, color: String?) throws -> Topic {
         try beginWrite(); defer { endWrite() }
         var topic = try self.topic(id: id)
@@ -120,7 +142,7 @@ public final class MarginStore: @unchecked Sendable {
 
     // MARK: Cross-process write lock
 
-    /// Serializes mutations across processes (every Claude session runs its own margin-mcp, plus the app).
+    /// Serializes mutations across processes (every Claude session runs its own anthology-mcp, plus the app).
     /// Reentrant within this process. Pair with `endWrite()` via `defer`.
     func beginWrite() throws {
         lock.lock()

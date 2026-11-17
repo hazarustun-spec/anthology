@@ -1,6 +1,6 @@
 import Foundation
 
-/// User-configurable chat shortcuts, shared by the app, margin-mcp and the Claude Code hook.
+/// User-configurable chat shortcuts, shared by the app, anthology-mcp and the Claude Code hook.
 public struct MarginSettings: Codable, Equatable, Sendable {
     /// `//m <text>`: Claude files it into the right note, no confirmation.
     public var smartPrefix: String
@@ -29,7 +29,7 @@ public struct MarginSettings: Codable, Equatable, Sendable {
     }
 
     public static var defaultURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Margin/settings.json")
+        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Anthology/settings.json")
     }
 
     public static func load(from url: URL = defaultURL) -> MarginSettings {
@@ -122,13 +122,13 @@ public struct HookHandler: Sendable {
         case .instant(let text):
             do {
                 let ref = try store.quickCapture(text, projectPath: cwd, by: .claudeCode, noteTitle: quickNoteTitle)
-                return json(["decision": "block", "reason": "✓ Margin: \(ref.topic.title) › \(ref.meta.title)"])
+                return json(["decision": "block", "reason": "✓ Anthology: \(ref.topic.title) › \(ref.meta.title)"])
             } catch {
-                return json(["decision": "block", "reason": "Margin couldn't save this: \(error.localizedDescription)"])
+                return json(["decision": "block", "reason": "Anthology couldn't save this: \(error.localizedDescription)"])
             }
         case .smart:
-            let context = "The user started this message with the Margin shortcut \(settings.smartPrefix). "
-                + "Save the rest of the message to Margin now, without asking for confirmation: pick or update the right note "
+            let context = "The user started this message with the Anthology shortcut \(settings.smartPrefix). "
+                + "Save the rest of the message to Anthology now, without asking for confirmation: pick or update the right note "
                 + "(project_path: \(cwd ?? "unknown")), then reply with one short line saying where it went."
             return json(["hookSpecificOutput": ["hookEventName": "UserPromptSubmit", "additionalContext": context]])
         }
@@ -140,7 +140,7 @@ public struct HookHandler: Sendable {
 }
 
 #if os(macOS)
-/// Adds/removes Margin's `UserPromptSubmit` hook in Claude Code's `~/.claude/settings.json`, leaving other hooks alone.
+/// Adds/removes Anthology's `UserPromptSubmit` hook in Claude Code's `~/.claude/settings.json`, leaving other hooks alone.
 public enum ClaudeHookConfig {
     static let event = "UserPromptSubmit"
 
@@ -149,7 +149,7 @@ public enum ClaudeHookConfig {
     }
 
     static func isOurs(_ group: [String: Any]) -> Bool {
-        ((group["hooks"] as? [[String: Any]]) ?? []).contains { ($0["command"] as? String)?.hasSuffix("margin-mcp\" hook") == true || ($0["command"] as? String)?.hasSuffix("margin-mcp hook") == true }
+        ((group["hooks"] as? [[String: Any]]) ?? []).contains { ($0["command"] as? String)?.hasSuffix("anthology-mcp\" hook") == true || ($0["command"] as? String)?.hasSuffix("anthology-mcp hook") == true }
     }
 
     public static func isInstalled(at url: URL = userSettings, command: String) -> Bool {

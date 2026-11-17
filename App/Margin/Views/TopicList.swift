@@ -65,6 +65,8 @@ struct TopicList: View {
             Button("Rename") { draftTitle = topic.title; renaming = topic.id }
             Button("Icon and color…") { styling = topic.id }
             Button("New note") { library.createNote(in: topic.id) }
+            Divider()
+            Button("Move to Trash", role: .destructive) { library.trashTopic(topic.id) }
         }
     }
 }

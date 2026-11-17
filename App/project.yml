@@ -19,9 +19,9 @@ settings:
     SWIFT_VERSION: "6.0"
     CODE_SIGN_STYLE: Automatic
     PRODUCT_BUNDLE_IDENTIFIER: $(MARGIN_BUNDLE_ID)
-    PRODUCT_NAME: Margin
+    PRODUCT_NAME: Anthology
     GENERATE_INFOPLIST_FILE: YES
-    INFOPLIST_KEY_CFBundleDisplayName: Margin
+    INFOPLIST_KEY_CFBundleDisplayName: Anthology
 targets:
   Margin:
     type: application
@@ -38,7 +38,7 @@ targets:
         NSUbiquitousContainers:
           iCloud.${MARGIN_BUNDLE_ID}:
             NSUbiquitousContainerIsDocumentScopePublic: true
-            NSUbiquitousContainerName: Margin
+            NSUbiquitousContainerName: Anthology
             NSUbiquitousContainerSupportedFolderLevels: Any
     settings:
       base:
@@ -47,19 +47,19 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SCRIPT_SANDBOXING: NO
     postCompileScripts:
-      - name: Embed margin-mcp helper
+      - name: Embed anthology-mcp helper
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           cd "$SRCROOT/../MarginKit"
           SWIFT() { env -i PATH="/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME" DEVELOPER_DIR="$DEVELOPER_DIR" xcrun swift "$@"; }
-          SWIFT build -c release --product margin-mcp
+          SWIFT build -c release --product anthology-mcp
           BIN="$(SWIFT build -c release --show-bin-path)"
           DEST="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers"
           mkdir -p "$DEST"
-          rm -f "$DEST/margin-mcp"
-          cp "$BIN/margin-mcp" "$DEST/margin-mcp"
-          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$DEST/margin-mcp" || true
+          rm -f "$DEST/anthology-mcp"
+          cp "$BIN/anthology-mcp" "$DEST/anthology-mcp"
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$DEST/anthology-mcp" || true
 
   MarginMobile:
     type: application
@@ -76,13 +76,13 @@ targets:
           UIApplicationSupportsMultipleScenes: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
-        NSFaceIDUsageDescription: Margin uses Face ID to unlock your notes.
+        NSFaceIDUsageDescription: Anthology uses Face ID to unlock your notes.
         ITSAppUsesNonExemptEncryption: false
         MarginICloudContainer: iCloud.$(MARGIN_BUNDLE_ID)
         NSUbiquitousContainers:
           iCloud.${MARGIN_BUNDLE_ID}:
             NSUbiquitousContainerIsDocumentScopePublic: true
-            NSUbiquitousContainerName: Margin
+            NSUbiquitousContainerName: Anthology
             NSUbiquitousContainerSupportedFolderLevels: Any
     settings:
       base:

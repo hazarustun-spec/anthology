@@ -17,7 +17,7 @@ struct RootView: View {
     var body: some View {
         NavigationStack(path: $path) {
             TopicsScreen(search: search, open: { path.append($0) })
-                .navigationTitle("Margin")
+                .navigationTitle("Anthology")
                 .searchable(text: $search, prompt: Text("Search all notes"))
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -99,7 +99,7 @@ struct TopicsScreen: View {
         .overlay {
             if library.topics.isEmpty {
                 ContentUnavailableView("No notes yet", systemImage: "sparkles",
-                    description: Text("Ask Claude to save something to Margin on your Mac. It appears here in seconds."))
+                    description: Text("Ask Claude to save something to Anthology on your Mac. It appears here in seconds."))
             }
         }
         .refreshable { library.refresh(markChanges: true, sync: true) }

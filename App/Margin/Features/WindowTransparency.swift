@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// "See-through" Mac window: the desktop and windows behind Margin show through, blurred,
+/// "See-through" Mac window: the desktop and windows behind Anthology show through, blurred,
 /// with a faint ambient tint so the app keeps its colour and text stays legible.
 enum WindowLook {
     static let transparentKey = "transparentWindow"

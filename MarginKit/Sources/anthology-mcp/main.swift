@@ -2,15 +2,15 @@ import Foundation
 import MarginCore
 import MCP
 
-// margin-mcp: stdio MCP server that lets Claude read and write Margin notes.
-// Usage: margin-mcp [--source claude-code|cowork] [--root <path>]
+// anthology-mcp: stdio MCP server that lets Claude read and write Anthology notes.
+// Usage: anthology-mcp [--source claude-code|cowork] [--root <path>]
 // Logs go to stderr only; stdout is the MCP channel.
 
 func log(_ message: String) {
-    FileHandle.standardError.write(Data("[margin-mcp] \(message)\n".utf8))
+    FileHandle.standardError.write(Data("[anthology-mcp] \(message)\n".utf8))
 }
 
-// `margin-mcp hook`: Claude Code UserPromptSubmit hook (reads the event JSON on stdin).
+// `anthology-mcp hook`: Claude Code UserPromptSubmit hook (reads the event JSON on stdin).
 if CommandLine.arguments.dropFirst().first == "hook" {
     let input = FileHandle.standardInput.readDataToEndOfFile()
     guard let store = try? MarginStore(root: MarginPaths.defaultRoot()) else { exit(0) }
@@ -26,7 +26,7 @@ while let arg = argv.next() {
     switch arg {
     case "--source": if let v = argv.next(), let s = ChangeSource(rawValue: v) { source = s }
     case "--root": if let v = argv.next() { env["MARGIN_ROOT"] = v }
-    case "--version": print("margin-mcp \(MarginCore.version)"); exit(0)
+    case "--version": print("anthology-mcp \(MarginCore.version)"); exit(0)
     default: log("ignoring unknown argument \(arg)")
     }
 }
@@ -68,9 +68,9 @@ func toolArgs(_ values: [String: Value]?) -> [String: ToolArg] {
 }
 
 let server = Server(
-    name: "margin",
+    name: "anthology",
     version: MarginCore.version,
-    title: "Margin — notes for Claude",
+    title: "Anthology — notes from your AI tools",
     instructions: MarginTools.instructions(settings: MarginSettings.load()),
     capabilities: .init(tools: .init(listChanged: false))
 )

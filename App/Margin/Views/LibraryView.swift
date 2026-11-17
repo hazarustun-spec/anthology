@@ -39,7 +39,7 @@ struct LibraryView: View {
         } content: {
             NoteList()
                 .navigationSplitViewColumnWidth(min: 240, ideal: 290, max: 380)
-                .navigationTitle(library.topics.first { $0.id == library.selectedTopicID }?.title ?? "Margin")
+                .navigationTitle(library.topics.first { $0.id == library.selectedTopicID }?.title ?? "Anthology")
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button { if let t = library.selectedTopicID { library.createNote(in: t) } } label: {
@@ -77,7 +77,7 @@ struct LibraryView: View {
         if let id = library.selectedNoteID, library.note(id) != nil {
             NoteDetail(noteID: id).id(id)
         } else {
-            EmptyState(symbol: "text.alignleft", title: "No note selected", message: "Pick a note, or ask Claude to save something to Margin.")
+            EmptyState(symbol: "text.alignleft", title: "No note selected", message: "Pick a note, or ask Claude to save something to Anthology.")
         }
     }
 }

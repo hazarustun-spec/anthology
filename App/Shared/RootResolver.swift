@@ -1,7 +1,7 @@
 import Foundation
 import MarginCore
 
-/// Picks the notes folder: Margin's iCloud Drive container when available, else a local folder.
+/// Picks the notes folder: Anthology's iCloud Drive container when available, else a local folder.
 /// On the Mac, notes saved before iCloud was enabled are moved into iCloud once.
 enum RootResolver {
     enum Location: Equatable { case iCloud, local }
@@ -38,7 +38,7 @@ enum RootResolver {
             let stamp = Date().formatted(.iso8601.year().month().day())
             try fm.moveItem(at: local, to: local.deletingLastPathComponent().appendingPathComponent("Notes (moved to iCloud \(stamp))"))
         } catch {
-            NSLog("Margin: iCloud migration skipped: \(error)")
+            NSLog("Anthology: iCloud migration skipped: \(error)")
         }
     }
 }

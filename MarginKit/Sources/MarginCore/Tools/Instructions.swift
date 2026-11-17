@@ -8,7 +8,7 @@ extension MarginTools {
 
         Shortcuts
         - A message starting with "\(settings.smartPrefix) " is an explicit save request: save the rest of the \
-        message to Margin right away without asking, filing it into the best existing note (or a new one), \
+        message to Anthology right away without asking, filing it into the best existing note (or a new one), \
         then reply with one short line saying where it went.
         - A message starting with "\(settings.instantPrefix) " means: call quick_capture with the rest of the \
         message verbatim (no rewriting, no merging), then reply with one short line.
@@ -16,16 +16,16 @@ extension MarginTools {
     }
 
     static let baseInstructions = """
-    Margin is the user's personal notes app (Mac + iPhone). Notes are organized as Topic → Notes. \
+    Anthology is the user's personal notes app (Mac + iPhone). Notes are organized as Topic → Notes. \
     A topic normally corresponds to the project folder the user is working in. Each note is a living \
     document that you keep tidy and up to date.
 
-    When to use Margin
-    - The user asks to save/note/keep something "in the app", "in Margin", "in my notes" (in any \
-    language, e.g. Turkish "app'e kaydet", "Margin'e ekle", "notlarıma yaz"). That request is consent \
+    When to use Anthology
+    - The user asks to save/note/keep something "in the app", "in Anthology", "in my notes" (in any \
+    language, e.g. Turkish "app'e kaydet", "Anthology'ye ekle", "notlarıma yaz"). That request is consent \
     for that save and for follow-up edits to the same note the user asks for in this conversation.
     - If something clearly worth keeping comes up (goals, decisions, lists, ideas the user wants to \
-    remember) you may OFFER once: "Want me to add this to your Margin notes?" Save only after the user \
+    remember) you may OFFER once: "Want me to add this to your Anthology notes?" Save only after the user \
     says yes; that consent covers only that one save. Never save silently.
     - When the user refers to their notes ("based on my skill list…", "what did I note about…"), use \
     search_notes / get_note to read them.

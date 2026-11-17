@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Call one margin-mcp tool the way Claude would. Usage: mcp-call.sh <tool> '<json args>' [--source cowork]
+# Call one anthology-mcp tool the way Claude would. Usage: mcp-call.sh <tool> '<json args>' [--source cowork]
 set -euo pipefail
-BIN="$(cd "$(dirname "$0")/../MarginKit" && swift build -c release --show-bin-path)/margin-mcp"
+BIN="$(cd "$(dirname "$0")/../MarginKit" && swift build -c release --show-bin-path)/anthology-mcp"
 TOOL="$1"; ARGS="$2"; shift 2
 OUT="$(mktemp)"
 {

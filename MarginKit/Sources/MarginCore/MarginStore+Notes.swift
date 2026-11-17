@@ -253,7 +253,7 @@ func searchKey(_ s: String) -> String {
 }
 
 
-/// Note ids Margin generates: 26 Crockford base32 characters. Anything else is never used in a path.
+/// Note ids Anthology generates: 26 Crockford base32 characters. Anything else is never used in a path.
 public func isValidNoteID(_ id: String) -> Bool {
     id.count == 26 && id.unicodeScalars.allSatisfy { ("0"..."9").contains($0) || ("A"..."Z").contains($0) }
 }

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Register margin-mcp with Claude Desktop (chat + Cowork). Backs up the config first.
+# Register anthology-mcp with Claude Desktop (chat + Cowork). Backs up the config first.
 set -euo pipefail
-BIN="$HOME/Library/Application Support/Margin/bin/margin-mcp"
+BIN="$HOME/Library/Application Support/Anthology/bin/anthology-mcp"
 CFG="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 [ -x "$BIN" ] || { echo "Run scripts/install-dev.sh first"; exit 1; }
 [ -f "$CFG" ] || echo '{}' > "$CFG"
-cp "$CFG" "$CFG.margin-backup-$(date +%Y%m%d%H%M%S)"
+cp "$CFG" "$CFG.anthology-backup-$(date +%Y%m%d%H%M%S)"
 python3 -I - "$CFG" "$BIN" <<'PY'
 import json, sys
 path, binary = sys.argv[1], sys.argv[2]

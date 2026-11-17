@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Many margin-mcp processes append to the same note at once; none of the appends may be lost.
+# Many anthology-mcp processes append to the same note at once; none of the appends may be lost.
 set -euo pipefail
 cd "$(dirname "$0")/../MarginKit"
-swift build -c release --product margin-mcp >/dev/null
-BIN="$(swift build -c release --show-bin-path)/margin-mcp"
+swift build -c release --product anthology-mcp >/dev/null
+BIN="$(swift build -c release --show-bin-path)/anthology-mcp"
 ROOT="$(mktemp -d)"
 N=12
 call() {

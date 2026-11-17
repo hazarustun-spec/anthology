@@ -10,7 +10,7 @@ struct LockView: View {
                 .font(.system(size: 44, weight: .light))
                 .foregroundStyle(Color(palette: Palette.accent))
                 .symbolEffect(.pulse, options: .repeating, isActive: appeared)
-            Text("Margin is locked").font(.system(size: 18, weight: .semibold))
+            Text("Anthology is locked").font(.system(size: 18, weight: .semibold))
             Button { lock.unlock() } label: {
                 Text("Unlock with \(AppLock.biometryName)").frame(minWidth: 180)
             }

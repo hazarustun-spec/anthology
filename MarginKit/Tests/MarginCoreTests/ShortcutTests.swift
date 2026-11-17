@@ -54,7 +54,7 @@ struct ShortcutTests {
         let json = try JSONSerialization.jsonObject(with: out!) as! [String: Any]
         let specific = json["hookSpecificOutput"] as! [String: Any]
         #expect(specific["hookEventName"] as? String == "UserPromptSubmit")
-        #expect((specific["additionalContext"] as? String)?.contains("Margin") == true)
+        #expect((specific["additionalContext"] as? String)?.contains("Anthology") == true)
         #expect(try store.listTopics().isEmpty)
     }
 
@@ -70,15 +70,15 @@ struct ShortcutTests {
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let url = dir.appendingPathComponent("settings.json")
         try #"{"model":"opus","hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"other"}]}],"Stop":[]}}"#.write(to: url, atomically: true, encoding: .utf8)
-        try ClaudeHookConfig.install(at: url, command: "/bin/margin-mcp hook")
-        try ClaudeHookConfig.install(at: url, command: "/bin/margin-mcp hook") // idempotent
-        #expect(ClaudeHookConfig.isInstalled(at: url, command: "/bin/margin-mcp hook"))
+        try ClaudeHookConfig.install(at: url, command: "/bin/anthology-mcp hook")
+        try ClaudeHookConfig.install(at: url, command: "/bin/anthology-mcp hook") // idempotent
+        #expect(ClaudeHookConfig.isInstalled(at: url, command: "/bin/anthology-mcp hook"))
         let root = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
         #expect(root["model"] as? String == "opus")
         let ups = (root["hooks"] as! [String: Any])["UserPromptSubmit"] as! [[String: Any]]
         #expect(ups.count == 2)
         try ClaudeHookConfig.remove(at: url)
-        #expect(!ClaudeHookConfig.isInstalled(at: url, command: "/bin/margin-mcp hook"))
+        #expect(!ClaudeHookConfig.isInstalled(at: url, command: "/bin/anthology-mcp hook"))
         let after = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
         #expect(((after["hooks"] as! [String: Any])["UserPromptSubmit"] as! [[String: Any]]).count == 1)
     }

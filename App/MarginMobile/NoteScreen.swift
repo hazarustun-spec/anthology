@@ -339,7 +339,7 @@ struct MobileSettings: View {
                     }
                 }
                 Section {
-                    Text("To save from chat, connect Claude in Margin for Mac. Your notes are plain Markdown files in iCloud Drive › Margin.")
+                    Text("To save from chat, connect Claude in Anthology for Mac. Your notes are plain Markdown files in iCloud Drive › Anthology.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }

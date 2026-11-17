@@ -63,23 +63,22 @@ extension ChangeSource {
     }
 }
 
+/// Quiet "Edited by Codex · 20 seconds ago" caption under a note's title; opens the history.
 struct SourceBadge: View {
     let entry: HistoryEntry
+    @State private var hovering = false
 
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: entry.by.symbol).foregroundStyle(Color(palette: Palette.accent))
-            Text(entry.by.label)
-            Text("·")
-            Text(entry.summary).lineLimit(1)
+        HStack(spacing: 4) {
+            Text("Edited by \(entry.by.displayName)")
             Text("·")
             Text(entry.at, format: .relative(presentation: .named))
-            Image(systemName: "chevron.down").font(.system(size: 9))
         }
         .font(.system(size: 12))
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 11).padding(.vertical, 5)
-        .background(Capsule().fill(Color(palette: Palette.chip)))
+        .foregroundStyle(hovering ? Color(palette: Palette.text) : Color(palette: Palette.secondary))
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .help(Text(entry.summary))
     }
 }
 

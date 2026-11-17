@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds a Developer ID–signed, notarized, stapled Margin.dmg.
+# Builds a Developer ID–signed, notarized, stapled Anthology.dmg.
 # One-time setup (stores an app-specific password in your keychain):
 #   xcrun notarytool store-credentials margin-notary --apple-id <you@icloud.com> --team-id <TEAMID>
 set -euo pipefail
@@ -10,17 +10,17 @@ rm -rf "$OUT" && mkdir -p "$OUT"
 
 "$ROOT/App/generate.sh" >/dev/null
 xcodebuild -project "$ROOT/App/Margin.xcodeproj" -scheme Margin -configuration Release \
-  -destination 'generic/platform=macOS' -archivePath "$OUT/Margin.xcarchive" -allowProvisioningUpdates archive | tail -1
-xcodebuild -exportArchive -archivePath "$OUT/Margin.xcarchive" \
+  -destination 'generic/platform=macOS' -archivePath "$OUT/Anthology.xcarchive" -allowProvisioningUpdates archive | tail -1
+xcodebuild -exportArchive -archivePath "$OUT/Anthology.xcarchive" \
   -exportOptionsPlist "$ROOT/scripts/release/export-developer-id.plist" -exportPath "$OUT/export" -allowProvisioningUpdates | tail -1
 
-VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$OUT/export/Margin.app/Contents/Info.plist")"
+VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$OUT/export/Anthology.app/Contents/Info.plist")"
 STAGE="$OUT/dmg"
 mkdir -p "$STAGE"
-cp -R "$OUT/export/Margin.app" "$STAGE/"
+cp -R "$OUT/export/Anthology.app" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
-DMG="$OUT/Margin-$VERSION.dmg"
-hdiutil create -volname "Margin" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+DMG="$OUT/Anthology-$VERSION.dmg"
+hdiutil create -volname "Anthology" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
 codesign --sign "Developer ID Application" --timestamp "$DMG" 2>/dev/null || true
 
 if xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null 2>&1; then

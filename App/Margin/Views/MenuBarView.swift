@@ -8,14 +8,14 @@ struct MenuBarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Margin").font(.system(size: 13, weight: .semibold))
+                Text("Anthology").font(.system(size: 13, weight: .semibold))
                 Spacer()
                 Text("Recent changes").font(.system(size: 11)).foregroundStyle(.tertiary)
             }
             .padding(.horizontal, 12).padding(.vertical, 10)
             Divider().overlay(Color(palette: Palette.hairline))
             if library.activity.isEmpty {
-                Text("Ask Claude to save something to Margin.")
+                Text("Ask Claude to save something to Anthology.")
                     .font(.system(size: 12)).foregroundStyle(.secondary).padding(14)
             }
             ForEach(library.activity.prefix(8)) { item in
@@ -41,7 +41,7 @@ struct MenuBarView: View {
             }
             Divider().overlay(Color(palette: Palette.hairline))
             HStack {
-                Button("Open Margin") { openWindow(id: "library"); NSApp.activate() }
+                Button("Open Anthology") { openWindow(id: "library"); NSApp.activate() }
                     .buttonStyle(.glassProminent).tint(Color(palette: Palette.accent))
                 Spacer()
                 SettingsLink { Text("Settings…") }.buttonStyle(.glass)
