@@ -82,12 +82,22 @@ struct MobileNoteEditor: UIViewRepresentable {
             let selection = view.selectedRange
             styler.freshLines = fresh
             if view.text != text {
+                styler.activeParagraph = nil
                 view.textStorage.replaceCharacters(in: NSRange(location: 0, length: view.textStorage.length), with: text)
             }
             styler.styleAll(view.textStorage)
             let length = (text as NSString).length
             view.selectedRange = NSRange(location: min(selection.location, length), length: 0)
             loading = false
+        }
+
+        func textViewDidChangeSelection(_ textView: UITextView) {
+            guard !loading, textView.isFirstResponder else { return }
+            styler.caretMoved(to: textView.selectedRange, in: textView.textStorage)
+        }
+
+        func textViewDidEndEditing(_ textView: UITextView) {
+            styler.caretMoved(to: nil, in: textView.textStorage)
         }
 
         func textViewDidChange(_ textView: UITextView) {

@@ -40,12 +40,27 @@ final class AttributionGutter: NSRulerView {
         var line = 0
         for i in 0..<index where text.character(at: i) == 10 { line += 1 }
 
+        // Show one icon per run of lines written by the same change, not one per line.
+        var previous: LineAttribution?? = nil
+        if line > 0 {
+            for i in stride(from: min(line, authors.count) - 1, through: 0, by: -1) where i < authors.count {
+                if let a = authors[i], !a.text.trimmingCharacters(in: .whitespaces).isEmpty { previous = .some(a); break }
+                if authors[i] == nil { previous = .some(nil); break }
+            }
+        }
         let end = NSMaxRange(chars)
         let now = Date()
         repeat {
             let para = text.paragraphRange(for: NSRange(location: index, length: 0))
-            if line < authors.count, let a = authors[line], let symbol = a.source?.lineSymbol,
-               !text.substring(with: para).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let blank = text.substring(with: para).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let current = line < authors.count ? authors[line] : nil
+            let startsRun: Bool = {
+                guard let a = current else { return false }
+                guard case .some(let p) = previous, let p else { return true }
+                return p.revision != a.revision || p.source != a.source
+            }()
+            if !blank { previous = .some(current) }
+            if !blank, startsRun, let a = current, let symbol = a.source?.lineSymbol {
                 let glyph = layout.glyphIndexForCharacter(at: para.location)
                 var lineRect = layout.lineFragmentRect(forGlyphAt: glyph, effectiveRange: nil)
                 lineRect.origin.y += textView.textContainerOrigin.y

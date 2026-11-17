@@ -26,7 +26,8 @@ struct TopicList: View {
         .safeAreaInset(edge: .bottom) {
             HStack {
                 Button { draftTitle = ""; addingTopic = true } label: { Label("New topic", systemImage: "plus") }
-                    .buttonStyle(.glass).controlSize(.small)
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
                 Spacer()
             }
             .padding(12)
@@ -38,8 +39,12 @@ struct TopicList: View {
     private func row(_ topic: Topic) -> some View {
         let selected = library.selectedTopicID == topic.id
         HStack(spacing: 8) {
-            Image(systemName: topic.icon ?? "folder")
-                .foregroundStyle(TopicStyle.color(topic.color))
+            // Selected rows let the system pick the icon color so it stays legible on the highlight.
+            if selected {
+                Image(systemName: topic.icon ?? "folder")
+            } else {
+                Image(systemName: topic.icon ?? "folder").foregroundStyle(TopicStyle.color(topic.color))
+            }
             if renaming == topic.id {
                 TextField("", text: $draftTitle)
                     .onSubmit { library.renameTopic(topic.id, to: draftTitle); renaming = nil }

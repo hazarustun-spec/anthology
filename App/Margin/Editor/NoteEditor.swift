@@ -104,6 +104,7 @@ struct NoteEditor: NSViewRepresentable {
             let selection = textView.selectedRanges
             styler.freshLines = fresh
             if textView.string != text {
+                styler.activeParagraph = nil
                 storage.replaceCharacters(in: NSRange(location: 0, length: storage.length), with: text)
             }
             styler.styleAll(storage)
@@ -116,6 +117,17 @@ struct NoteEditor: NSViewRepresentable {
         func realignAuthors() {
             guard let textView else { return }
             gutter?.authors = LineAuthors.align(attribution, to: textView.string)
+        }
+
+        func textViewDidChangeSelection(_ notification: Notification) {
+            guard !loading, let textView, let storage = textView.textStorage,
+                  textView.window?.firstResponder === textView else { return }
+            styler.caretMoved(to: textView.selectedRange(), in: storage)
+        }
+
+        func textDidEndEditing(_ notification: Notification) {
+            guard let storage = textView?.textStorage else { return }
+            styler.caretMoved(to: nil, in: storage)
         }
 
         func textDidChange(_ notification: Notification) {
