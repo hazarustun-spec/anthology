@@ -34,7 +34,8 @@ struct LibraryView: View {
 
     private var split: some View {
         NavigationSplitView {
-            TopicList()                .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 300)
+            TopicList()
+                .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 300)
         } content: {
             NoteList()
                 .navigationSplitViewColumnWidth(min: 240, ideal: 290, max: 380)
