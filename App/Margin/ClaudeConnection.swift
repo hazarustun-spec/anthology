@@ -86,6 +86,22 @@ final class ClaudeConnection {
         }
     }
 
+    /// Run at launch: if a tool is still configured to use the helper but the file is gone
+    /// (deleted by a cleaner app, Application Support wiped), copy it back so the tool keeps working.
+    func restoreHelperIfMissing() {
+        let usesHelper = status.contains { client, state in
+            if client == .claudeCode && claudeCodeViaPlugin { return false }  // the plugin runs the bundled copy
+            return state == .connected || state == .differentBinary
+        }
+        guard usesHelper, !FileManager.default.fileExists(atPath: helperPath) else { return }
+        do {
+            try installHelper()
+        } catch {
+            lastError = error.localizedDescription
+        }
+        refresh()
+    }
+
     func connect(_ client: Client) {
         working = client
         lastError = nil

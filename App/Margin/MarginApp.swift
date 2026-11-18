@@ -18,6 +18,7 @@ struct MarginApp: App {
             DispatchQueue.main.async { Snapshot.run(library: library, to: snap.url, after: snap.delay) }
         } else {
             Notifier.shared.setUp()
+            ClaudeConnection().restoreHelperIfMissing()
         }
     }
 
