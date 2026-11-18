@@ -19,7 +19,7 @@ Betik son sürümü indirir, Apple imzasını kontrol eder, `Anthology.app`'i Uy
 ## 2. Yapay zekânı bağla
 
 Uygulama ilk açılışta kısa bir tanıtım gösterir. **"Yapay zekânı bağla"** sayfasında kullandığın aracın yanındaki **Bağlan**'a bas.
-Sonradan: **Anthology › Ayarlar › Bağlantılar**.
+Sonradan: kenar çubuğunun altındaki **⚙ Bağlantılar** (ya da ⌘ + virgül).
 
 - **Claude Code:** Bağlan'dan sonra açık Claude Code oturumunu kapatıp yeniden başlat.
 - **Claude Desktop / Cowork:** Bağlan'a basınca Claude bir kez yeniden başlar.
@@ -66,7 +66,7 @@ Yapay zekâ izin vermeden not silemez; her değişikliğin önceki hali saklanı
 
 ## Kaldırma
 
-Anthology'yi Uygulamalar'dan çöpe at. Bağlantıları önce **Ayarlar › Bağlantılar**'dan kesersen araçların yapılandırmaları da temizlenir.
+Anthology'yi Uygulamalar'dan çöpe at. Bağlantıları önce **⚙ Bağlantılar**'dan kesersen araçların yapılandırmaları da temizlenir.
 Notların iCloud Drive › Anthology'de kalır.
 
 Kaynak kodu ve sorular: https://github.com/hazarustun-spec/anthology

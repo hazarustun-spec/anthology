@@ -1499,6 +1499,16 @@
           }
         }
       }
+    },
+    "Connect your AI tools (⌘,)": {
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yapay zekâ araçlarını bağla (⌘,)"
+          }
+        }
+      }
     }
   }
 }

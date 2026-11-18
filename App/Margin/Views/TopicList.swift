@@ -24,12 +24,13 @@ struct TopicList: View {
         }
         .listStyle(.sidebar)
         .safeAreaInset(edge: .bottom) {
-            HStack {
+            VStack(alignment: .leading, spacing: 10) {
                 Button { draftTitle = ""; addingTopic = true } label: { Label("New topic", systemImage: "plus") }
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
-                Spacer()
+                SidebarFooter()
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
         }
         .animation(.spring(duration: 0.35), value: library.freshNotes)
