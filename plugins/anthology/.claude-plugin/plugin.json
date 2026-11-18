@@ -1,6 +1,6 @@
 {
   "name": "anthology",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Save what matters from your Claude Code chats into Anthology, the Mac + iPhone notes app your AI tools write into. Requires the Anthology Mac app.",
   "author": { "name": "Hazar Ustun" },
   "homepage": "https://github.com/hazarustun-spec/anthology",
